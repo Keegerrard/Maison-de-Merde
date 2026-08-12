@@ -202,8 +202,17 @@
       </div>
 
       <div class="card">
-        <h2>Frequency — last 30 days</h2>
-        <canvas id="freqChart" width="600" height="180"></canvas>
+        <h2>Consistency</h2>
+        <p class="muted">Last 13 weeks — darker means more sessions that day.</p>
+        <div id="heatmap" class="heatmap"></div>
+        <div class="heatmap-legend">
+          <span>Less</span>
+          <span class="heatmap-cell level-0"></span>
+          <span class="heatmap-cell level-1"></span>
+          <span class="heatmap-cell level-2"></span>
+          <span class="heatmap-cell level-3"></span>
+          <span>More</span>
+        </div>
       </div>
 
       <div class="card">
@@ -244,6 +253,17 @@
 </div>
 
 <div id="toast" class="toast hidden"></div>
+
+<canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+<div id="celebrationOverlay" class="celebration-overlay hidden">
+  <div class="celebration-card">
+    <div class="celebration-icon" id="celebrationIcon">🏆</div>
+    <div class="celebration-title" id="celebrationTitle">Achievement Unlocked</div>
+    <div class="celebration-subtitle" id="celebrationSubtitle"></div>
+    <button class="btn btn-primary" id="celebrationDismiss">Nice!</button>
+  </div>
+</div>
 
 <script src="app.js"></script>
 </body>

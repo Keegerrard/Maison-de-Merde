@@ -145,6 +145,7 @@ async function main() {
   body = await res.json();
   assert(body.totalSessions === 2, `dashboard totalSessions is 2 (got ${body.totalSessions})`);
   assert(body.bristolCounts[3] === 1, "bristolCounts[3] (Type 4) incremented");
+  assert(Array.isArray(body.heatmap) && body.heatmap.length === 91, `dashboard returns a 91-day heatmap array (got length ${body.heatmap && body.heatmap.length})`);
 
   // --- Vision endpoint without OPENAI_API_KEY returns 503, not a crash ---
   delete process.env.OPENAI_API_KEY;

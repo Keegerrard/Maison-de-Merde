@@ -104,6 +104,7 @@ async function main() {
   body = await res.json();
   assert(body.totalSessions === 2, `dashboard totalSessions is 2 (got ${body.totalSessions})`);
   assert(body.bristolCounts[5] === 1, "bristolCounts[5] (Type 6) incremented");
+  assert(Array.isArray(body.heatmap) && body.heatmap.length === 91, `dashboard returns a 91-day heatmap array (got length ${body.heatmap && body.heatmap.length})`);
   assert(typeof body.streak.current === "number", "dashboard streak.current is a number, not a Date/object bug");
 
   // Streak freeze round-trips a plain date string

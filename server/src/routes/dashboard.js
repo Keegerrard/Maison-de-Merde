@@ -15,16 +15,20 @@ router.get("/", async (req, res) => {
     const freezeUntil = toISODateString(user.streak_freeze_until);
     const streak = calcStreak(timestamps, user.grace_tokens, freezeUntil);
 
-    // Frequency for the last 30 days.
+    // Daily counts for the last 91 days (~13 weeks) — enough for a
+    // GitHub/Duolingo-style contribution heatmap on the dashboard. Returned
+    // as a flat chronological list; the client buckets it into weeks
+    // itself based on each date's day-of-week.
+    const HEATMAP_DAYS = 91;
     const dayBuckets = {};
-    for (let i = 29; i >= 0; i--) {
+    for (let i = HEATMAP_DAYS - 1; i >= 0; i--) {
       dayBuckets[todayISO(new Date(Date.now() - i * 86400000))] = 0;
     }
     timestamps.forEach((t) => {
       const day = t.slice(0, 10);
       if (day in dayBuckets) dayBuckets[day] += 1;
     });
-    const frequency30d = Object.entries(dayBuckets).map(([day, count]) => ({ day, count }));
+    const heatmap = Object.entries(dayBuckets).map(([day, count]) => ({ day, count }));
 
     // Bristol type distribution.
     const bristolCounts = new Array(7).fill(0);
@@ -44,7 +48,7 @@ router.get("/", async (req, res) => {
       streak,
       graceTokens: user.grace_tokens,
       streakFreezeUntil: freezeUntil,
-      frequency30d,
+      heatmap,
       bristolCounts,
       badges,
       totalSessions: sessions.length,

@@ -24,6 +24,106 @@ async function api(path, opts = {}) {
 }
 
 /* -------------------------------------------------------------------------
+   Confetti — dependency-free canvas particle burst. Fired on every log
+   (small burst) and on achievement unlocks (bigger burst, via the
+   celebration modal below). Purely decorative, never blocks anything.
+   ------------------------------------------------------------------------- */
+
+const confettiCanvas = document.getElementById("confettiCanvas");
+const confettiCtx = confettiCanvas.getContext("2d");
+let confettiParticles = [];
+let confettiRunning = false;
+const CONFETTI_COLORS = ["#a5682a", "#d4924f", "#4fae72", "#ffc35a", "#d4634f", "#eef2f3"];
+
+function resizeConfettiCanvas() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeConfettiCanvas);
+resizeConfettiCanvas();
+
+function spawnConfetti(count = 50, originY = 0.3) {
+  const w = confettiCanvas.width, h = confettiCanvas.height;
+  for (let i = 0; i < count; i++) {
+    confettiParticles.push({
+      x: w / 2 + (Math.random() - 0.5) * w * 0.5,
+      y: h * originY + (Math.random() - 0.5) * 30,
+      vx: (Math.random() - 0.5) * 9,
+      vy: -Math.random() * 11 - 3,
+      size: Math.random() * 6 + 4,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.3,
+      life: 0,
+      maxLife: 80 + Math.random() * 45,
+      shape: Math.random() < 0.5 ? "rect" : "circle",
+    });
+  }
+  if (!confettiRunning) {
+    confettiRunning = true;
+    requestAnimationFrame(animateConfetti);
+  }
+}
+
+function animateConfetti() {
+  confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  confettiParticles.forEach((p) => {
+    p.vy += 0.28; // gravity
+    p.x += p.vx;
+    p.y += p.vy;
+    p.rotation += p.rotationSpeed;
+    p.life += 1;
+    confettiCtx.save();
+    confettiCtx.translate(p.x, p.y);
+    confettiCtx.rotate(p.rotation);
+    confettiCtx.globalAlpha = Math.max(0, 1 - p.life / p.maxLife);
+    confettiCtx.fillStyle = p.color;
+    if (p.shape === "rect") {
+      confettiCtx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+    } else {
+      confettiCtx.beginPath();
+      confettiCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+      confettiCtx.fill();
+    }
+    confettiCtx.restore();
+  });
+  confettiParticles = confettiParticles.filter((p) => p.life < p.maxLife && p.y < confettiCanvas.height + 60);
+  if (confettiParticles.length > 0) {
+    requestAnimationFrame(animateConfetti);
+  } else {
+    confettiRunning = false;
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Celebration modal — bigger moment than a toast, for achievement unlocks.
+   Queued so multiple simultaneous badge unlocks show one at a time.
+   ------------------------------------------------------------------------- */
+
+let celebrationQueue = [];
+let celebrationShowing = false;
+
+function queueCelebration({ icon, title, subtitle }) {
+  celebrationQueue.push({ icon, title, subtitle });
+  if (!celebrationShowing) showNextCelebration();
+}
+
+function showNextCelebration() {
+  if (celebrationQueue.length === 0) {
+    celebrationShowing = false;
+    return;
+  }
+  celebrationShowing = true;
+  const { icon, title, subtitle } = celebrationQueue.shift();
+  document.getElementById("celebrationIcon").textContent = icon;
+  document.getElementById("celebrationTitle").textContent = title;
+  document.getElementById("celebrationSubtitle").textContent = subtitle || "";
+  document.getElementById("celebrationOverlay").classList.remove("hidden");
+  spawnConfetti(150, 0.25);
+}
+
+/* -------------------------------------------------------------------------
    Auth
    ------------------------------------------------------------------------- */
 
@@ -98,18 +198,68 @@ function resetDetailForm() {
 }
 
 function handleUnlockedBadges(newlyUnlocked) {
-  (newlyUnlocked || []).forEach((b) => showToast(`Achievement unlocked: ${b.icon} ${b.name}`));
+  (newlyUnlocked || []).forEach((b) => {
+    queueCelebration({ icon: b.icon, title: `${b.name} unlocked!`, subtitle: b.desc });
+  });
+}
+
+/* -------------------------------------------------------------------------
+   Streak pill — animated count-up + glow tier based on streak length.
+   ------------------------------------------------------------------------- */
+
+let lastRenderedStreak = null;
+
+function updateStreakDisplay(newValue) {
+  const pill = document.getElementById("streakPill");
+  const countEl = document.getElementById("streakCount");
+  const prev = lastRenderedStreak;
+  lastRenderedStreak = newValue;
+
+  let tier = 0;
+  if (newValue >= 100) tier = 4;
+  else if (newValue >= 30) tier = 3;
+  else if (newValue >= 7) tier = 2;
+  else if (newValue >= 1) tier = 1;
+  pill.className = "streak-pill" + (tier ? ` tier-${tier}` : "");
+
+  if (prev === null || prev === newValue) {
+    countEl.textContent = newValue;
+    return;
+  }
+
+  const start = prev;
+  const end = newValue;
+  const duration = 500;
+  const startTime = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - startTime) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    countEl.textContent = Math.round(start + (end - start) * eased);
+    if (t < 1) requestAnimationFrame(tick);
+    else countEl.textContent = end;
+  }
+  requestAnimationFrame(tick);
+
+  if (end > start) {
+    pill.classList.add("bump");
+    setTimeout(() => pill.classList.remove("bump"), 400);
+  }
 }
 
 async function renderStreakPill() {
   try {
     const data = await api("/dashboard");
-    document.getElementById("streakCount").textContent = data.streak.current;
+    updateStreakDisplay(data.streak.current);
   } catch (e) { /* non-fatal */ }
+}
+
+function skeletonRows(n, cls = "skeleton-row") {
+  return Array.from({ length: n }, () => `<div class="skeleton ${cls}"></div>`).join("");
 }
 
 async function renderSessionList() {
   const list = document.getElementById("sessionList");
+  list.innerHTML = skeletonRows(3);
   try {
     const { sessions } = await api("/sessions?limit=15");
     if (!sessions.length) {
@@ -139,6 +289,7 @@ async function renderSessionList() {
    ------------------------------------------------------------------------- */
 
 async function renderDashboard() {
+  document.getElementById("heatmap").innerHTML = `<div class="skeleton skeleton-block" style="width:100%"></div>`;
   let data;
   try {
     data = await api("/dashboard");
@@ -149,22 +300,47 @@ async function renderDashboard() {
   document.getElementById("statLongestStreak").textContent = data.streak.longest;
   document.getElementById("statGraceTokens").textContent = data.graceTokens;
 
-  drawFrequencyChart(data.frequency30d);
+  renderHeatmap(data.heatmap);
   drawBristolChart(data.bristolCounts);
 }
 
-function drawFrequencyChart(frequency30d) {
-  const canvas = document.getElementById("freqChart");
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const counts = frequency30d.map((d) => d.count);
-  const max = Math.max(1, ...counts);
-  const barW = canvas.width / counts.length;
-  ctx.fillStyle = "#a5682a";
-  counts.forEach((c, i) => {
-    const h = (c / max) * (canvas.height - 20);
-    ctx.fillRect(i * barW + 1, canvas.height - h, barW - 2, h);
+/**
+ * GitHub/Duolingo-style contribution heatmap. Buckets the flat chronological
+ * day list from the API into weeks (columns of 7, Sun-Sat) and colors each
+ * cell by session count relative to this user's own busiest day, so it
+ * scales sensibly whether someone logs once a day or five times.
+ */
+function renderHeatmap(heatmapData) {
+  const container = document.getElementById("heatmap");
+  if (!heatmapData || !heatmapData.length) {
+    container.innerHTML = `<div class="empty-state">No data yet.</div>`;
+    return;
+  }
+  const cells = heatmapData.map((d) => ({ ...d, dow: new Date(d.day + "T00:00:00Z").getUTCDay() }));
+
+  const weeks = [];
+  let week = new Array(7).fill(null);
+  for (let i = 0; i < cells[0].dow; i++) week[i] = null;
+  cells.forEach((c) => {
+    week[c.dow] = c;
+    if (c.dow === 6) {
+      weeks.push(week);
+      week = new Array(7).fill(null);
+    }
   });
+  if (week.some((c) => c !== null)) weeks.push(week);
+
+  const maxCount = Math.max(1, ...cells.map((c) => c.count));
+  container.innerHTML = weeks.map((w) => w.map((c) => {
+    if (!c) return `<div class="heatmap-cell"></div>`;
+    let level = 0;
+    if (c.count > 0) {
+      const ratio = c.count / maxCount;
+      level = ratio > 0.66 ? 3 : ratio > 0.33 ? 2 : 1;
+    }
+    const label = `${c.day}: ${c.count} session${c.count === 1 ? "" : "s"}`;
+    return `<div class="heatmap-cell level-${level}" title="${label}"></div>`;
+  }).join("")).join("");
 }
 
 function drawBristolChart(bristolCounts) {
@@ -190,6 +366,7 @@ function drawBristolChart(bristolCounts) {
 async function renderCircle() {
   const el = document.getElementById("leaderboard");
   const reqEl = document.getElementById("friendRequests");
+  el.innerHTML = skeletonRows(3);
   try {
     const [{ leaderboard }, { requests }] = await Promise.all([
       api("/circle"),
@@ -222,6 +399,7 @@ async function renderCircle() {
 
 async function renderAchievements() {
   const grid = document.getElementById("badgeGrid");
+  grid.innerHTML = `<div class="skeleton skeleton-block" style="grid-column: 1 / -1;"></div>`;
   try {
     const data = await api("/dashboard");
     grid.innerHTML = data.badges.map((b) => `
@@ -304,6 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const result = await api("/sessions", { method: "POST", body: {} });
       showToast("Logged! 💩");
+      spawnConfetti(50, 0.22);
       handleUnlockedBadges(result.newlyUnlocked);
       renderSessionList();
       renderStreakPill();
@@ -399,10 +578,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const result = await api("/sessions", { method: "POST", body });
+      showToast("Session saved 📋");
+      spawnConfetti(70, 0.22);
       handleUnlockedBadges(result.newlyUnlocked);
       resetDetailForm();
       document.getElementById("detailForm").classList.add("hidden");
-      showToast("Session saved 📋");
       renderSessionList();
       renderStreakPill();
     } catch (err) {
@@ -451,6 +631,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       showToast(err.message);
     }
+  });
+
+  document.getElementById("celebrationDismiss").addEventListener("click", () => {
+    document.getElementById("celebrationOverlay").classList.add("hidden");
+    showNextCelebration();
   });
 });
 
