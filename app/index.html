@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Proshitute — Track. Streak. Compete.</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">💩</span>
+    <span class="brand-name">Proshitute</span>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="log">Log</button>
+    <button class="tab" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="circle">Circle</button>
+    <button class="tab" data-tab="achievements">Achievements</button>
+  </nav>
+  <div class="streak-pill" id="streakPill">
+    <span id="streakFlame">🔥</span>
+    <span id="streakCount">0</span>
+    <span class="streak-label">day streak</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- LOG TAB -->
+  <section class="panel active" id="panel-log">
+    <div class="card quick-log-card">
+      <h2>Quick Log</h2>
+      <p class="muted">One tap logs a session right now. Add details after, if you want.</p>
+      <button class="btn btn-primary btn-big" id="quickLogBtn">Log a shit now 💩</button>
+      <button class="btn btn-secondary" id="detailedLogBtn">Log with details</button>
+    </div>
+
+    <div class="card hidden" id="detailForm">
+      <h2>Session Details</h2>
+      <form id="analysisForm">
+        <div class="field-group">
+          <label>Bristol Stool Type</label>
+          <div class="bristol-picker" id="bristolPicker">
+            <button type="button" class="bristol-opt" data-value="1">1<span>Separate hard lumps</span></button>
+            <button type="button" class="bristol-opt" data-value="2">2<span>Lumpy sausage</span></button>
+            <button type="button" class="bristol-opt" data-value="3">3<span>Cracked sausage</span></button>
+            <button type="button" class="bristol-opt" data-value="4">4<span>Smooth, soft sausage</span></button>
+            <button type="button" class="bristol-opt" data-value="5">5<span>Soft blobs</span></button>
+            <button type="button" class="bristol-opt" data-value="6">6<span>Mushy, ragged</span></button>
+            <button type="button" class="bristol-opt" data-value="7">7<span>Entirely liquid</span></button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="colorSelect">Color</label>
+            <select id="colorSelect">
+              <option value="brown">Brown (typical)</option>
+              <option value="dark-brown">Dark brown</option>
+              <option value="green">Green</option>
+              <option value="yellow">Yellow</option>
+              <option value="pale">Pale / clay</option>
+              <option value="black">Black</option>
+              <option value="red">Red</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="odorSelect">Odor</label>
+            <select id="odorSelect">
+              <option value="typical">Typical</option>
+              <option value="mild">Milder than usual</option>
+              <option value="strong">Stronger than usual</option>
+              <option value="severe">Much stronger than usual</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="painSelect">Pain / straining</label>
+            <select id="painSelect">
+              <option value="none">None</option>
+              <option value="mild">Mild</option>
+              <option value="moderate">Moderate</option>
+              <option value="severe">Severe</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="visibleFood" />
+              Visible undigested food
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="bloodFlag" />
+              Blood present
+            </label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Symptoms</label>
+          <div class="chip-picker" id="symptomChips">
+            <button type="button" class="chip" data-value="bloating">Bloating</button>
+            <button type="button" class="chip" data-value="urgency">Urgency</button>
+            <button type="button" class="chip" data-value="incomplete">Incomplete evacuation</button>
+            <button type="button" class="chip" data-value="cramping">Cramping</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="photoInput">Photo (optional — analyzed locally, never uploaded)</label>
+          <input type="file" id="photoInput" accept="image/*" />
+          <div id="photoPreviewWrap" class="hidden">
+            <img id="photoPreview" alt="preview" />
+            <div id="aiSuggestion" class="ai-suggestion hidden"></div>
+            <label class="checkbox-label small">
+              <input type="checkbox" id="keepPhoto" />
+              Keep this photo in my local history (off by default)
+            </label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="notesInput">Notes</label>
+          <textarea id="notesInput" rows="2" placeholder="Anything else worth remembering?"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancelDetailBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Session</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Recent Sessions</h2>
+      <div id="sessionList" class="session-list"></div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD TAB -->
+  <section class="panel" id="panel-dashboard">
+    <div class="card">
+      <h2>Streak</h2>
+      <div class="stat-row">
+        <div class="stat"><span class="stat-value" id="statCurrentStreak">0</span><span class="stat-label">Current streak</span></div>
+        <div class="stat"><span class="stat-value" id="statLongestStreak">0</span><span class="stat-label">Longest streak</span></div>
+        <div class="stat"><span class="stat-value" id="statGraceTokens">0</span><span class="stat-label">Grace tokens</span></div>
+      </div>
+      <button class="btn btn-secondary" id="freezeStreakBtn">Freeze streak (traveling / sick)</button>
+    </div>
+
+    <div class="card">
+      <h2>Frequency — last 30 days</h2>
+      <canvas id="freqChart" width="600" height="180"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Bristol Type Distribution</h2>
+      <canvas id="bristolChart" width="600" height="180"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Doctor Export</h2>
+      <p class="muted">A clean summary of your logged trends — de-identified by default.</p>
+      <button class="btn btn-secondary" id="exportBtn">Export summary (.txt)</button>
+    </div>
+  </section>
+
+  <!-- CIRCLE TAB -->
+  <section class="panel" id="panel-circle">
+    <div class="card">
+      <h2>Demo Circle</h2>
+      <p class="muted">Ranked by streak &amp; consistency — not raw frequency. Real friend invites aren't wired up yet (no backend), so this is seeded demo data alongside your real stats.</p>
+      <div id="leaderboard" class="leaderboard"></div>
+    </div>
+  </section>
+
+  <!-- ACHIEVEMENTS TAB -->
+  <section class="panel" id="panel-achievements">
+    <div class="card">
+      <h2>Achievements</h2>
+      <div id="badgeGrid" class="badge-grid"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
