@@ -1,0 +1,28 @@
+{
+  "name": "proshitute-server",
+  "version": "1.0.0",
+  "description": "Proshitute backend: Express + Postgres + JWT auth + OpenAI vision analysis",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "migrate": "node src/migrate.js",
+    "test": "node test/streak.test.js && node test/db.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.11.5"
+  },
+  "devDependencies": {
+    "pg-mem": "^2.8.1"
+  }
+}
