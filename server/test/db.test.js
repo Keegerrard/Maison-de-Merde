@@ -29,7 +29,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 
 const { runMigrations } = require("../src/migrate");
-const { pool } = require("../src/db");
+require("../src/db"); // must load after the 'pg' mock above, before route files
 const authRoutes = require("../src/routes/auth");
 const sessionsRoutes = require("../src/routes/sessions");
 const dashboardRoutes = require("../src/routes/dashboard");
@@ -61,7 +61,7 @@ function extractCookie(res) {
 }
 
 async function main() {
-  await runMigrations(pool);
+  await runMigrations();
   console.log("[test] migrations applied against pg-mem\n");
 
   const app = makeApp();

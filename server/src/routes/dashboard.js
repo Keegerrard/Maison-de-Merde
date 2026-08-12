@@ -2,7 +2,7 @@ const express = require("express");
 const { query } = require("../db");
 const { requireAuth } = require("../auth");
 const { loadUserStats } = require("../statsHelpers");
-const { calcStreak, BADGES, todayISO, toISODateString } = require("../streak");
+const { calcStreak, BADGES, todayISO, toISODateString, toISOStringSafe } = require("../streak");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -11,7 +11,7 @@ router.use(requireAuth);
 router.get("/", async (req, res) => {
   try {
     const { user, sessions, unlockedIds } = await loadUserStats(req.userId);
-    const timestamps = sessions.map((s) => s.occurred_at.toISOString());
+    const timestamps = sessions.map((s) => toISOStringSafe(s.occurred_at));
     const freezeUntil = toISODateString(user.streak_freeze_until);
     const streak = calcStreak(timestamps, user.grace_tokens, freezeUntil);
 
@@ -73,7 +73,7 @@ router.post("/freeze", async (req, res) => {
 router.get("/export", async (req, res) => {
   try {
     const { user, sessions } = await loadUserStats(req.userId);
-    const timestamps = sessions.map((s) => s.occurred_at.toISOString());
+    const timestamps = sessions.map((s) => toISOStringSafe(s.occurred_at));
     const streak = calcStreak(timestamps, user.grace_tokens, toISODateString(user.streak_freeze_until));
 
     const bristolCounts = new Array(7).fill(0);

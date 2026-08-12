@@ -91,7 +91,33 @@ as part of the same metered usage, not a separate flat fee. Pricing changes
 over time — check https://railway.app/pricing for current numbers before
 you commit real usage to it.
 
-## Local development
+## Local preview (zero setup, no Postgres needed)
+
+For just trying the app out on your own machine before deploying anywhere,
+you don't need Postgres, Docker, or a `.env` file at all:
+
+```bash
+cd server
+npm install
+npm start
+```
+
+Open http://localhost:3000. With no `DATABASE_URL` set, the server
+automatically falls back to a local SQLite database (`server/data/proshitute.db`,
+git-ignored) and generates a temporary session secret for you — you'll see
+warnings about both in the terminal, which is expected. That temporary
+secret means everyone gets logged out if you restart the server, and the
+SQLite fallback is meant for kicking the tires, not for actually running
+the thing day-to-day with friends — for that, follow the Railway steps
+above so you get real Postgres and a stable secret.
+
+Photo analysis still needs `OPENAI_API_KEY` set (see step 4) even in local
+mode — without it, that one endpoint returns a clear error instead of
+working, but everything else runs fine.
+
+## Local development against real Postgres
+
+If you want to develop against the same database engine you'll deploy to:
 
 ```bash
 cd server
@@ -101,6 +127,9 @@ npm run migrate        # optional — server.js also runs migrations on boot
 npm start               # serves http://localhost:3000
 ```
 
-Run the test suites any time with `npm test` (pure-logic streak/achievement
-tests plus a pg-mem-backed integration test that exercises the real routes
-without needing a live Postgres server).
+## Tests
+
+Run all three suites with `npm test`:
+- `test/streak.test.js` — pure-logic streak/grace-token/achievement checks, no DB at all.
+- `test/db.test.js` — the real Express routes against an in-memory Postgres mock (pg-mem), so the Postgres-path SQL is verified without needing a live database.
+- `test/db.sqlite.test.js` — the same kind of coverage against the real local SQLite fallback (no mocking), since that's what most people will actually run first.

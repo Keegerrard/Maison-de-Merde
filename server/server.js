@@ -6,7 +6,7 @@ const cors = require("cors");
 const path = require("path");
 
 const { runMigrations } = require("./src/migrate");
-const { pool } = require("./src/db");
+const { driver } = require("./src/db");
 
 const authRoutes = require("./src/routes/auth");
 const sessionsRoutes = require("./src/routes/sessions");
@@ -46,25 +46,38 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal server error." });
 });
 
-async function start() {
-  if (!process.env.JWT_SECRET) {
-    console.error("FATAL: JWT_SECRET env var is required. Refusing to start.");
+function ensureJwtSecret() {
+  if (process.env.JWT_SECRET) return;
+  if (process.env.NODE_ENV === "production") {
+    console.error("FATAL: JWT_SECRET env var is required in production. Refusing to start.");
     process.exit(1);
   }
-  if (!process.env.DATABASE_URL) {
-    console.error("FATAL: DATABASE_URL env var is required. Refusing to start.");
-    process.exit(1);
+  // Local/dev convenience only: generate a throwaway secret so `npm start`
+  // works with zero config. Sessions won't survive a restart (everyone gets
+  // logged out), and this must never be reached in production — the check
+  // above guarantees that.
+  process.env.JWT_SECRET = require("crypto").randomBytes(32).toString("hex");
+  console.warn("WARNING: JWT_SECRET not set — generated a temporary one for this run. " +
+    "Set JWT_SECRET yourself for anything beyond local preview (sessions reset on every restart otherwise).");
+}
+
+async function start() {
+  ensureJwtSecret();
+
+  if (driver === "sqlite") {
+    console.warn("No DATABASE_URL set — using a local SQLite file (server/data/proshitute.db). " +
+      "Fine for local preview; set DATABASE_URL before deploying anywhere real.");
   }
 
   try {
-    await runMigrations(pool);
+    await runMigrations();
   } catch (e) {
     console.error("FATAL: migrations failed", e);
     process.exit(1);
   }
 
   app.listen(PORT, () => {
-    console.log(`Proshitute server listening on :${PORT}`);
+    console.log(`Proshitute server listening on :${PORT} (db driver: ${driver})`);
     if (!process.env.OPENAI_API_KEY) {
       console.warn("WARNING: OPENAI_API_KEY not set — photo analysis endpoint will return 503 until it is.");
     }

@@ -1,7 +1,7 @@
 const express = require("express");
 const { query } = require("../db");
 const { requireAuth } = require("../auth");
-const { calcStreak, daysBetween, todayISO, toISODateString } = require("../streak");
+const { calcStreak, daysBetween, todayISO, toISODateString, toISOStringSafe } = require("../streak");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -13,7 +13,7 @@ async function computeUserRow(userId, username) {
   );
   const user = userRes.rows[0];
   const sessRes = await query("SELECT occurred_at FROM sessions_log WHERE user_id = $1 ORDER BY occurred_at ASC", [userId]);
-  const timestamps = sessRes.rows.map((r) => r.occurred_at.toISOString());
+  const timestamps = sessRes.rows.map((r) => toISOStringSafe(r.occurred_at));
   const streak = calcStreak(timestamps, user.grace_tokens, toISODateString(user.streak_freeze_until));
 
   const uniqueDays = new Set(timestamps.map((t) => t.slice(0, 10))).size;

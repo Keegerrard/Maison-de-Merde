@@ -14,14 +14,20 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS sessions_log (
   id              SERIAL PRIMARY KEY,
   user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  occurred_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  -- Always supplied explicitly by the app (new Date().toISOString()) rather
+  -- than relying on a DB-side default, so behavior is identical whether
+  -- this row was written via Postgres or the SQLite dev fallback.
+  occurred_at     TIMESTAMPTZ NOT NULL,
   bristol_type    SMALLINT,
   color           TEXT,
   odor            TEXT,
   pain            TEXT,
   visible_food    BOOLEAN NOT NULL DEFAULT false,
   blood_flag      BOOLEAN NOT NULL DEFAULT false,
-  symptoms        TEXT[] NOT NULL DEFAULT '{}',
+  -- JSON-encoded array (not a native TEXT[]) so the same column type and
+  -- app-level (de)serialization work identically on SQLite, which has no
+  -- array type. We never query into individual symptoms, so nothing is lost.
+  symptoms        TEXT NOT NULL DEFAULT '[]',
   notes           TEXT,
   ai_suggested    BOOLEAN NOT NULL DEFAULT false,
   ai_confidence   REAL,

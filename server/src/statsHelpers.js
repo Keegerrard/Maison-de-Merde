@@ -1,5 +1,5 @@
 const { query } = require("./db");
-const { calcStreak, maybeGrantGraceToken, checkAchievements, todayISO, toISODateString } = require("./streak");
+const { calcStreak, maybeGrantGraceToken, checkAchievements, todayISO, toISODateString, toISOStringSafe } = require("./streak");
 
 /** Fetch everything needed to compute streak + achievements for one user. */
 async function loadUserStats(userId) {
@@ -30,7 +30,7 @@ async function loadUserStats(userId) {
 async function recomputeAfterNewSession(userId) {
   const { user, sessions, unlockedIds } = await loadUserStats(userId);
 
-  const timestamps = sessions.map((s) => s.occurred_at.toISOString());
+  const timestamps = sessions.map((s) => toISOStringSafe(s.occurred_at));
   const streak = calcStreak(timestamps, user.grace_tokens, toISODateString(user.streak_freeze_until));
 
   const graceRecord = {

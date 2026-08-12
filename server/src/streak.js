@@ -28,6 +28,19 @@ function toISODateString(value) {
 }
 
 /**
+ * Normalizes a full timestamp value to an ISO datetime string. Postgres
+ * (node-postgres) returns TIMESTAMPTZ columns as JS Date objects; the
+ * SQLite fallback stores/returns them as plain ISO strings already (see
+ * src/db.js). Every place that reads occurred_at should go through this
+ * instead of calling .toISOString() directly, so it works on both.
+ */
+function toISOStringSafe(value) {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string") return value;
+  return new Date(value).toISOString();
+}
+
+/**
  * Given a list of ISO datetime strings (session timestamps), grace tokens,
  * and an optional freeze-until date, compute { current, longest, tokensUsed }.
  */
@@ -119,4 +132,4 @@ function checkAchievements(ctx, alreadyUnlockedIds) {
   return newly;
 }
 
-module.exports = { calcStreak, maybeGrantGraceToken, checkAchievements, BADGES, todayISO, daysBetween, toISODateString };
+module.exports = { calcStreak, maybeGrantGraceToken, checkAchievements, BADGES, todayISO, daysBetween, toISODateString, toISOStringSafe };

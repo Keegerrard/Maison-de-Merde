@@ -32,18 +32,19 @@ router.post("/", async (req, res) => {
   try {
     const insertRes = await query(
       `INSERT INTO sessions_log
-        (user_id, bristol_type, color, odor, pain, visible_food, blood_flag, symptoms, notes, ai_suggested, ai_confidence, photo_kept)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+        (user_id, occurred_at, bristol_type, color, odor, pain, visible_food, blood_flag, symptoms, notes, ai_suggested, ai_confidence, photo_kept)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
        RETURNING id, occurred_at`,
       [
         req.userId,
+        new Date().toISOString(),
         bristolType,
         b.color || null,
         b.odor || null,
         b.pain || null,
         !!b.visibleFood,
         !!b.bloodFlag,
-        symptoms,
+        JSON.stringify(symptoms),
         (b.notes || "").slice(0, 2000) || null,
         !!b.aiSuggested,
         typeof b.aiConfidence === "number" ? b.aiConfidence : null,
@@ -75,7 +76,11 @@ router.get("/", async (req, res) => {
        FROM sessions_log WHERE user_id = $1 ORDER BY occurred_at DESC LIMIT $2`,
       [req.userId, limit]
     );
-    res.json({ sessions: result.rows });
+    const sessions = result.rows.map((s) => ({
+      ...s,
+      symptoms: (() => { try { return JSON.parse(s.symptoms || "[]"); } catch (e) { return []; } })(),
+    }));
+    res.json({ sessions });
   } catch (e) {
     console.error("list sessions error", e);
     res.status(500).json({ error: "Failed to load sessions." });
