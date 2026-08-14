@@ -422,7 +422,9 @@ canvas { width: 100%; height: auto; background: var(--bg); border-radius: 8px; }
   height: 100vh;
   pointer-events: none;
   z-index: 999;
+  display: none;
 }
+.confetti-canvas.active { display: block; }
 
 .celebration-overlay {
   position: fixed;

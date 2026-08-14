@@ -30,12 +30,13 @@ async function api(path, opts = {}) {
    ------------------------------------------------------------------------- */
 
 const confettiCanvas = document.getElementById("confettiCanvas");
-const confettiCtx = confettiCanvas.getContext("2d");
+const confettiCtx = confettiCanvas ? confettiCanvas.getContext("2d") : null;
 let confettiParticles = [];
 let confettiRunning = false;
 const CONFETTI_COLORS = ["#a5682a", "#d4924f", "#4fae72", "#ffc35a", "#d4634f", "#eef2f3"];
 
 function resizeConfettiCanvas() {
+  if (!confettiCanvas) return;
   confettiCanvas.width = window.innerWidth;
   confettiCanvas.height = window.innerHeight;
 }
@@ -43,6 +44,7 @@ window.addEventListener("resize", resizeConfettiCanvas);
 resizeConfettiCanvas();
 
 function spawnConfetti(count = 50, originY = 0.3) {
+  if (!confettiCanvas || !confettiCtx) return;
   const w = confettiCanvas.width, h = confettiCanvas.height;
   for (let i = 0; i < count; i++) {
     confettiParticles.push({
@@ -61,6 +63,7 @@ function spawnConfetti(count = 50, originY = 0.3) {
   }
   if (!confettiRunning) {
     confettiRunning = true;
+    confettiCanvas.classList.add("active");
     requestAnimationFrame(animateConfetti);
   }
 }
@@ -93,6 +96,7 @@ function animateConfetti() {
   } else {
     confettiRunning = false;
     confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    confettiCanvas.classList.remove("active");
   }
 }
 
