@@ -1,4 +1,4 @@
-# Proshitute
+# Maison de Merde
 
 **A Longitudinal, Gamified, Computer-Vision-Assisted Framework for Personal Defecation Analytics**
 
@@ -8,7 +8,7 @@
 
 ## Abstract
 
-Despite bowel movements being a universal, high-frequency biological event with well-established diagnostic value (stool form, color, odor, and frequency are all clinically recognized indicators of gastrointestinal health), the modern individual has no structured way to track, analyze, or socially contextualize their own defecation habits. Existing solutions are either purely clinical (undertaken only after symptoms already warrant a doctor's visit) or nonexistent for everyday preventive use. **Proshitute** proposes a mobile-first system that closes this gap through four integrated subsystems: (1) a low-friction logging engine, (2) a behavioral-psychology-driven streak and habit-formation layer, (3) an opt-in social/competitive layer, and (4) a manual- and computer-vision-assisted stool analysis pipeline built on the clinically validated Bristol Stool Scale. We present the problem motivation, related work, system architecture, data methodology, and evaluation criteria for the platform, along with an explicit treatment of the privacy and ethical considerations inherent to collecting this class of data.
+Despite bowel movements being a universal, high-frequency biological event with well-established diagnostic value (stool form, color, odor, and frequency are all clinically recognized indicators of gastrointestinal health), the modern individual has no structured way to track, analyze, or socially contextualize their own defecation habits. Existing solutions are either purely clinical (undertaken only after symptoms already warrant a doctor's visit) or nonexistent for everyday preventive use. **Maison de Merde** proposes a mobile-first system that closes this gap through four integrated subsystems: (1) a low-friction logging engine, (2) a behavioral-psychology-driven streak and habit-formation layer, (3) an opt-in social/competitive layer, and (4) a manual- and computer-vision-assisted stool analysis pipeline built on the clinically validated Bristol Stool Scale. We present the problem motivation, related work, system architecture, data methodology, and evaluation criteria for the platform, along with an explicit treatment of the privacy and ethical considerations inherent to collecting this class of data.
 
 ---
 
@@ -35,7 +35,7 @@ Despite bowel movements being a universal, high-frequency biological event with 
 
 Digestive health sits at an odd cultural crossroads: it is simultaneously universal (everyone does it, roughly daily) and taboo (almost no one talks about it, tracks it, or has any baseline for what "normal" looks like for them personally). This creates an information vacuum. People are frequently unable to answer basic questions about their own GI health — "Is this normal for me?", "Has this changed over the last month?", "Is this correlated with what I ate or how much water I drank?" — because no record exists to answer them.
 
-Proshitute reframes defecation as a trackable health signal, applies established habit-formation and gamification design patterns to encourage consistent logging, and layers social and AI-assisted tooling on top to make the data both more fun to generate and more useful once generated.
+Maison de Merde reframes defecation as a trackable health signal, applies established habit-formation and gamification design patterns to encourage consistent logging, and layers social and AI-assisted tooling on top to make the data both more fun to generate and more useful once generated.
 
 ---
 
@@ -51,18 +51,18 @@ We identify four distinct but related problems:
 
 **P4 — No structured self-assessment.** When something *does* feel off, most people have no framework for describing it precisely (to themselves or a doctor) beyond vague, non-clinical language.
 
-Proshitute addresses P1–P4 directly via, respectively: a logging/history system, a streak and reward engine, an opt-in competitive social layer, and a structured (optionally AI-assisted) analysis form.
+Maison de Merde addresses P1–P4 directly via, respectively: a logging/history system, a streak and reward engine, an opt-in competitive social layer, and a structured (optionally AI-assisted) analysis form.
 
 ---
 
 ## 3. Related Work
 
-- **The Bristol Stool Scale** (Lewis & Heaton, 1997) — a clinically validated 7-point classification of stool form, used globally in gastroenterology. Proshitute adopts this scale as the backbone of its manual logging taxonomy rather than inventing a new one, for both clinical credibility and user familiarity.
+- **The Bristol Stool Scale** (Lewis & Heaton, 1997) — a clinically validated 7-point classification of stool form, used globally in gastroenterology. Maison de Merde adopts this scale as the backbone of its manual logging taxonomy rather than inventing a new one, for both clinical credibility and user familiarity.
 - **Habit-formation and streak mechanics** — as popularized by language-learning and fitness apps (e.g., Duolingo, Snapchat), streak-based design reliably increases daily active usage by leveraging loss aversion (users are more motivated to avoid breaking a streak than to build a new one).
 - **Social fitness competition** — platforms like Strava demonstrate that adding a lightweight, opt-in leaderboard to an otherwise solitary/private health activity meaningfully increases engagement without requiring the activity itself to be inherently social.
-- **Consumer computer-vision health tools** — food-logging apps that use photo input plus a vision model to auto-estimate nutritional content offer a proof of concept for the "photo in, structured health data out" pattern Proshitute applies to stool analysis.
+- **Consumer computer-vision health tools** — food-logging apps that use photo input plus a vision model to auto-estimate nutritional content offer a proof of concept for the "photo in, structured health data out" pattern Maison de Merde applies to stool analysis.
 
-Proshitute's contribution is not any one of these ideas in isolation, but their combination applied to a specific, underserved category of personal health data.
+Maison de Merde's contribution is not any one of these ideas in isolation, but their combination applied to a specific, underserved category of personal health data.
 
 ---
 
@@ -81,7 +81,7 @@ Proshitute's contribution is not any one of these ideas in isolation, but their 
 
 ## 5. System Architecture
 
-Proshitute is designed as a mobile-first application with a thin client and a services-oriented backend, so the vision pipeline and analytics engine can evolve independently of the logging UI.
+Maison de Merde is designed as a mobile-first application with a thin client and a services-oriented backend, so the vision pipeline and analytics engine can evolve independently of the logging UI.
 
 ```
 ┌─────────────────────┐
@@ -242,7 +242,7 @@ _Stack and setup instructions to be finalized as implementation begins. Planned 
 ```bash
 # placeholder — to be replaced once the initial scaffold exists
 git clone <repo-url>
-cd proshitute
+cd maison-de-merde
 # setup instructions TBD
 ```
 

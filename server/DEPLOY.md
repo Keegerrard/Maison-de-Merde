@@ -1,4 +1,4 @@
-# Deploying Proshitute to Render + Neon
+# Deploying Maison de Merde to Render + Neon
 
 This backend (`/server`) is a single Node/Express service that serves both
 the API and the static frontend (`server/public/`), backed by a managed
@@ -18,7 +18,7 @@ own free Postgres expires after 30 days, Neon's free tier doesn't.
 ## 1. Create the Neon database
 
 1. In the Neon console, click **New Project**. Give it a name (e.g.
-   `proshitute`) and pick a region — ideally close to whichever region
+   `maison-de-merde`) and pick a region — ideally close to whichever region
    you'll pick for the Render service in step 2.
 2. Neon creates a default database and role for you immediately, no
    further setup needed.
@@ -48,7 +48,7 @@ into `DATABASE_URL`.
 
    | Field | Value |
    |---|---|
-   | Name | `proshitute` (or anything) |
+   | Name | `maison-de-merde` (or anything) |
    | Region | Same region you picked for Neon, if possible |
    | Branch | `main` (or whatever you push to) |
    | Root Directory | `server` |
@@ -81,7 +81,7 @@ branch. On first boot, `server.js` runs the SQL migrations in
 `src/migrations/` against the Neon database before it starts accepting
 requests — there's no separate manual migration step.
 
-Watch the **Logs** tab; once it says `Proshitute server listening on :10000
+Watch the **Logs** tab; once it says `Maison de Merde server listening on :10000
 (db driver: postgres)`, it's live at the `*.onrender.com` URL shown at the
 top of the service page.
 
@@ -126,7 +126,7 @@ npm start
 ```
 
 Open http://localhost:3000. With no `DATABASE_URL` set, the server
-automatically falls back to a local SQLite database (`server/data/proshitute.db`,
+automatically falls back to a local SQLite database (`server/data/maison-de-merde.db`,
 git-ignored) and generates a temporary session secret for you — you'll see
 warnings about both in the terminal, which is expected. That temporary
 secret means everyone gets logged out if you restart the server, and the

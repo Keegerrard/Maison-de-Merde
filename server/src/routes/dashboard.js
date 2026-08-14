@@ -91,7 +91,7 @@ router.get("/export", async (req, res) => {
       if (s.blood_flag || s.pain === "severe") flagged.push(s);
     });
 
-    let out = `PROSHITUTE — SESSION SUMMARY (de-identified)\n`;
+    let out = `MAISON DE MERDE — SESSION SUMMARY (de-identified)\n`;
     out += `Generated: ${new Date().toLocaleString()}\n`;
     out += `================================================\n\n`;
     out += `Total sessions logged: ${sessions.length}\n`;
@@ -105,7 +105,7 @@ router.get("/export", async (req, res) => {
     out += `\nNote: this is a self-reported wellness summary, not a diagnosis. Share with a healthcare provider as context, not a conclusion.\n`;
 
     res.setHeader("Content-Type", "text/plain");
-    res.setHeader("Content-Disposition", `attachment; filename="proshitute-summary-${todayISO()}.txt"`);
+    res.setHeader("Content-Disposition", `attachment; filename="maison-de-merde-summary-${todayISO()}.txt"`);
     res.send(out);
   } catch (e) {
     console.error("export error", e);

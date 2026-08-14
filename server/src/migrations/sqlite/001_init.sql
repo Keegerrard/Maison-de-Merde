@@ -1,4 +1,4 @@
--- Proshitute schema (v1) — SQLite dev-mode variant.
+-- Maison de Merde schema (v1) — SQLite dev-mode variant.
 -- Mirrors src/migrations/postgres/001_init.sql column-for-column so the
 -- application code (src/statsHelpers.js, routes/*) works unmodified against
 -- either driver. Differences are purely dialect (INTEGER PRIMARY KEY

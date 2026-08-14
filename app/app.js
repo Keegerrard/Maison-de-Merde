@@ -1,10 +1,10 @@
 /* =========================================================================
-   Proshitute — client-side prototype
+   Maison de Merde — client-side prototype
    All data lives in localStorage. No backend, no network calls, no accounts.
    Photos are analyzed locally (canvas pixel heuristics) and never uploaded.
    ========================================================================= */
 
-const STORAGE_KEY = "proshitute_data_v1";
+const STORAGE_KEY = "maison_de_merde_data_v1";
 
 /* -------------------------------------------------------------------------
    Data model + persistence
@@ -440,7 +440,7 @@ function exportSummary() {
     }
   });
 
-  let out = `PROSHITUTE — SESSION SUMMARY (de-identified)\n`;
+  let out = `MAISON DE MERDE — SESSION SUMMARY (de-identified)\n`;
   out += `Generated: ${new Date().toLocaleString()}\n`;
   out += `================================================\n\n`;
   out += `Total sessions logged: ${total}\n`;
@@ -460,7 +460,7 @@ function exportSummary() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `proshitute-summary-${todayISO()}.txt`;
+  a.download = `maison-de-merde-summary-${todayISO()}.txt`;
   a.click();
   URL.revokeObjectURL(url);
 }

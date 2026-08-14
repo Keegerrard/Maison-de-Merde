@@ -1,5 +1,5 @@
 /* =========================================================================
-   Proshitute — frontend, backed by the real API (server.js + src/routes/*).
+   Maison de Merde — frontend, backed by the real API (server.js + src/routes/*).
    All state lives server-side now; this file just renders API responses
    and posts user actions. Auth is a cookie-based session (see src/auth.js).
    ========================================================================= */

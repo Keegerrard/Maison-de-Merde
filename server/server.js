@@ -65,7 +65,7 @@ async function start() {
   ensureJwtSecret();
 
   if (driver === "sqlite") {
-    console.warn("No DATABASE_URL set — using a local SQLite file (server/data/proshitute.db). " +
+    console.warn("No DATABASE_URL set — using a local SQLite file (server/data/maison-de-merde.db). " +
       "Fine for local preview; set DATABASE_URL before deploying anywhere real.");
   }
 
@@ -77,7 +77,7 @@ async function start() {
   }
 
   app.listen(PORT, () => {
-    console.log(`Proshitute server listening on :${PORT} (db driver: ${driver})`);
+    console.log(`Maison de Merde server listening on :${PORT} (db driver: ${driver})`);
     if (!process.env.OPENAI_API_KEY) {
       console.warn("WARNING: OPENAI_API_KEY not set — photo analysis endpoint will return 503 until it is.");
     }

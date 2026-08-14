@@ -1,4 +1,4 @@
--- Proshitute schema (v1). Idempotent: safe to run on every boot.
+-- Maison de Merde schema (v1). Idempotent: safe to run on every boot.
 
 CREATE TABLE IF NOT EXISTS users (
   id              SERIAL PRIMARY KEY,

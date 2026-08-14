@@ -45,7 +45,7 @@ if (driver === "postgres") {
 } else {
   const initSqlJs = require("sql.js");
 
-  const dbPath = process.env.SQLITE_PATH || path.join(__dirname, "..", "data", "proshitute.db");
+  const dbPath = process.env.SQLITE_PATH || path.join(__dirname, "..", "data", "maison-de-merde.db");
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
   let sqljsDb = null;

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: proshitute
+    name: maison-de-merde
     runtime: node
     rootDir: server
     plan: free

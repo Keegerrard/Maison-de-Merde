@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const COOKIE_NAME = "proshitute_session";
+const COOKIE_NAME = "maison_de_merde_session";
 const JWT_EXPIRY = "30d";
 
 function getJwtSecret() {

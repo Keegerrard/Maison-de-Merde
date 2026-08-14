@@ -1,7 +1,7 @@
 {
-  "name": "proshitute-server",
+  "name": "maison-de-merde-server",
   "version": "1.0.0",
-  "description": "Proshitute backend: Express + Postgres + JWT auth + OpenAI vision analysis",
+  "description": "Maison de Merde backend: Express + Postgres + JWT auth + OpenAI vision analysis",
   "main": "server.js",
   "type": "commonjs",
   "engines": {
