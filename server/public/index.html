@@ -4,17 +4,23 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Maison de Merde — Track. Streak. Compete.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+<div id="ambientSparkles" class="ambient-sparkles"></div>
+
 <!-- AUTH SCREEN -->
 <div id="authScreen" class="auth-screen">
-  <div class="auth-card">
+  <div class="auth-card ornate">
     <div class="brand auth-brand">
-      <span class="brand-mark">💩</span>
+      <span class="brand-medallion"><span class="brand-mark">💩</span></span>
       <span class="brand-name">Maison de Merde</span>
     </div>
+    <p class="auth-tagline">Établie 2026 · Purveyors of Fine Digestive Distinction</p>
     <div class="auth-tabs">
       <button class="auth-tab active" data-form="login">Log In</button>
       <button class="auth-tab" data-form="signup">Sign Up</button>
@@ -56,8 +62,9 @@
 <div id="app" class="hidden">
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">💩</span>
+      <span class="brand-medallion small"><span class="brand-mark">💩</span></span>
       <span class="brand-name">Maison de Merde</span>
+      <span id="goldBadge" class="gold-badge hidden">👑 Gold Member</span>
     </div>
     <nav class="tabs" id="tabs">
       <button class="tab active" data-tab="log">Log</button>
@@ -79,14 +86,14 @@
 
     <!-- LOG TAB -->
     <section class="panel active" id="panel-log">
-      <div class="card quick-log-card">
+      <div class="card ornate quick-log-card">
         <h2>Quick Log</h2>
         <p class="muted">One tap logs a session right now. Add details after, if you want.</p>
         <button class="btn btn-primary btn-big" id="quickLogBtn">Log a shit now 💩</button>
         <button class="btn btn-secondary" id="detailedLogBtn">Log with details</button>
       </div>
 
-      <div class="card hidden" id="detailForm">
+      <div class="card ornate hidden" id="detailForm">
         <h2>Session Details</h2>
         <form id="analysisForm">
           <div class="field-group">
@@ -183,7 +190,7 @@
         </form>
       </div>
 
-      <div class="card">
+      <div class="card ornate">
         <h2>Recent Sessions</h2>
         <div id="sessionList" class="session-list"></div>
       </div>
@@ -191,17 +198,24 @@
 
     <!-- DASHBOARD TAB -->
     <section class="panel" id="panel-dashboard">
-      <div class="card">
+      <div class="card ornate">
         <h2>Streak</h2>
         <div class="stat-row">
           <div class="stat"><span class="stat-value" id="statCurrentStreak">0</span><span class="stat-label">Current streak</span></div>
           <div class="stat"><span class="stat-value" id="statLongestStreak">0</span><span class="stat-label">Longest streak</span></div>
           <div class="stat"><span class="stat-value" id="statGraceTokens">0</span><span class="stat-label">Grace tokens</span></div>
         </div>
-        <button class="btn btn-secondary" id="freezeStreakBtn">Freeze streak (traveling / sick)</button>
+        <div class="premium-actions">
+          <button class="btn btn-secondary btn-premium" id="freezeStreakBtn">
+            <span class="premium-crown">👑</span> Freeze Streak <span class="premium-tag">Gold</span>
+          </button>
+          <button class="btn btn-secondary btn-premium" id="recoverStreakBtn">
+            <span class="premium-crown">👑</span> Recover a Missed Day <span class="premium-tag">Gold</span>
+          </button>
+        </div>
       </div>
 
-      <div class="card">
+      <div class="card ornate">
         <h2>Consistency</h2>
         <p class="muted">Last 13 weeks — darker means more sessions that day.</p>
         <div id="heatmap" class="heatmap"></div>
@@ -215,12 +229,12 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card ornate">
         <h2>Bristol Type Distribution</h2>
         <canvas id="bristolChart" width="600" height="180"></canvas>
       </div>
 
-      <div class="card">
+      <div class="card ornate">
         <h2>Doctor Export</h2>
         <p class="muted">A clean summary of your logged trends — de-identified by default.</p>
         <button class="btn btn-secondary" id="exportBtn">Export summary (.txt)</button>
@@ -229,7 +243,7 @@
 
     <!-- CIRCLE TAB -->
     <section class="panel" id="panel-circle">
-      <div class="card">
+      <div class="card ornate">
         <h2>Your Circle</h2>
         <p class="muted">Ranked by streak &amp; consistency — not raw frequency.</p>
         <div class="field-row">
@@ -243,7 +257,7 @@
 
     <!-- ACHIEVEMENTS TAB -->
     <section class="panel" id="panel-achievements">
-      <div class="card">
+      <div class="card ornate">
         <h2>Achievements</h2>
         <div id="badgeGrid" class="badge-grid"></div>
       </div>
@@ -262,6 +276,58 @@
     <div class="celebration-title" id="celebrationTitle">Achievement Unlocked</div>
     <div class="celebration-subtitle" id="celebrationSubtitle"></div>
     <button class="btn btn-primary" id="celebrationDismiss">Nice!</button>
+  </div>
+</div>
+
+<!-- PAYWALL -->
+<div id="paywallOverlay" class="celebration-overlay hidden">
+  <div class="paywall-card">
+    <button class="paywall-close" id="paywallClose" aria-label="Close">&times;</button>
+
+    <div class="paywall-crest">👑</div>
+    <h2 class="paywall-title">The Gold Circle</h2>
+    <p class="paywall-subtitle" id="paywallReason">An exclusive privilege, reserved for members of distinction.</p>
+
+    <div class="paywall-tiers" id="paywallTiers">
+      <button type="button" class="paywall-tier" data-tier="monthly" data-price="4.99">
+        <span class="tier-name">Monthly</span>
+        <span class="tier-price">$4.99<span>/mo</span></span>
+      </button>
+      <button type="button" class="paywall-tier selected" data-tier="annual" data-price="39.99">
+        <span class="tier-badge">Best Value</span>
+        <span class="tier-name">Annual</span>
+        <span class="tier-price">$39.99<span>/yr</span></span>
+      </button>
+    </div>
+
+    <ul class="paywall-perks">
+      <li>Unlimited streak freezes, for the traveling connoisseur</li>
+      <li>Missed-day recovery, discreetly arranged</li>
+      <li>A gold medallion by your name, so the Circle knows</li>
+    </ul>
+
+    <form id="paywallForm">
+      <div class="field-group">
+        <label for="paywallCard">Card number</label>
+        <input type="text" id="paywallCard" placeholder="4242 4242 4242 4242" maxlength="19" inputmode="numeric" required />
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label for="paywallExpiry">Expiry</label>
+          <input type="text" id="paywallExpiry" placeholder="MM / YY" maxlength="7" required />
+        </div>
+        <div class="field-group">
+          <label for="paywallCvc">CVC</label>
+          <input type="text" id="paywallCvc" placeholder="•••" maxlength="4" inputmode="numeric" required />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-big paywall-submit" id="paywallSubmit">
+        <span class="paywall-submit-label">Join the Gold Circle — <span id="paywallSubmitPrice">$39.99/yr</span></span>
+        <span class="paywall-spinner hidden"></span>
+      </button>
+    </form>
+
+    <p class="paywall-fineprint">This is a demo paywall for a satirical app — no card is real, no payment is processed, and nothing is charged. Any details entered here go nowhere.</p>
   </div>
 </div>
 

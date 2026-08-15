@@ -33,7 +33,7 @@ const confettiCanvas = document.getElementById("confettiCanvas");
 const confettiCtx = confettiCanvas ? confettiCanvas.getContext("2d") : null;
 let confettiParticles = [];
 let confettiRunning = false;
-const CONFETTI_COLORS = ["#a5682a", "#d4924f", "#4fae72", "#ffc35a", "#d4634f", "#eef2f3"];
+const CONFETTI_COLORS = ["#d4af37", "#f2d786", "#8a6a1f", "#6e1f2b", "#f3ead9", "#4fae72"];
 
 function resizeConfettiCanvas() {
   if (!confettiCanvas) return;
@@ -101,6 +101,53 @@ function animateConfetti() {
 }
 
 /* -------------------------------------------------------------------------
+   Ambient sparkles — a handful of small, non-interactive gold motes drifting
+   slowly upward behind the UI. Plain absolutely-positioned <span> elements
+   (not a canvas, not opaque) animated with transform/opacity only, so
+   there's no persistent full-viewport paint surface sitting over the page —
+   the confetti canvas caused exactly that class of rendering problem, so
+   this is deliberately built differently.
+   ------------------------------------------------------------------------- */
+
+function initAmbientSparkles() {
+  const container = document.getElementById("ambientSparkles");
+  if (!container) return;
+  const COUNT = 22;
+  for (let i = 0; i < COUNT; i++) {
+    const s = document.createElement("span");
+    s.className = "sparkle";
+    s.style.left = `${Math.random() * 100}%`;
+    s.style.bottom = `${-10 - Math.random() * 20}px`;
+    s.style.animationDuration = `${9 + Math.random() * 10}s`;
+    s.style.animationDelay = `${Math.random() * 12}s`;
+    container.appendChild(s);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Card tilt — subtle perspective tilt following the pointer, scoped to each
+   card individually (never a full-viewport effect). Skipped on touch
+   devices since there's no hover pointer to track.
+   ------------------------------------------------------------------------- */
+
+function initCardTilt() {
+  if (window.matchMedia && window.matchMedia("(hover: none)").matches) return;
+  document.addEventListener("pointermove", (e) => {
+    const card = e.target.closest && e.target.closest(".card");
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    card.dataset.tilt = "1";
+    card.style.transform = `perspective(700px) rotateX(${(-py * 4).toFixed(2)}deg) rotateY(${(px * 4).toFixed(2)}deg)`;
+  });
+  document.addEventListener("pointerleave", (e) => {
+    const card = e.target.closest && e.target.closest(".card");
+    if (card) card.style.transform = "";
+  }, true);
+}
+
+/* -------------------------------------------------------------------------
    Celebration modal — bigger moment than a toast, for achievement unlocks.
    Queued so multiple simultaneous badge unlocks show one at a time.
    ------------------------------------------------------------------------- */
@@ -158,6 +205,55 @@ function switchAuthForm(which) {
   document.querySelectorAll(".auth-tab").forEach((t) => t.classList.toggle("active", t.dataset.form === which));
   document.getElementById("loginForm").classList.toggle("hidden", which !== "login");
   document.getElementById("signupForm").classList.toggle("hidden", which !== "signup");
+}
+
+/* -------------------------------------------------------------------------
+   Paywall (dummy) — gates "Freeze Streak" and "Recover a Missed Day"
+   behind a fake Gold Membership upsell. No payment is ever actually
+   processed: the card fields are decorative, "subscribing" just sets a
+   client-side flag in localStorage for this browser and runs whatever
+   action was waiting behind the paywall. Freeze Streak still calls the
+   real API afterward; Recover a Missed Day has no backend behind it at
+   all (there's no streak-recovery endpoint), so it's cosmetic only —
+   labeled honestly as such in its own toast, not faked as a real change.
+   ------------------------------------------------------------------------- */
+
+const PREMIUM_KEY = "maison_de_merde_premium_v1";
+let pendingPremiumAction = null;
+let selectedPaywallTier = { tier: "annual", price: "39.99" };
+
+function isPremium() {
+  return localStorage.getItem(PREMIUM_KEY) === "1";
+}
+
+function setPremium() {
+  localStorage.setItem(PREMIUM_KEY, "1");
+  document.getElementById("goldBadge").classList.remove("hidden");
+}
+
+function refreshGoldBadge() {
+  document.getElementById("goldBadge").classList.toggle("hidden", !isPremium());
+}
+
+function gateWithPaywall(reason, action) {
+  if (isPremium()) {
+    action();
+    return;
+  }
+  pendingPremiumAction = action;
+  document.getElementById("paywallReason").textContent = reason;
+  const form = document.getElementById("paywallForm");
+  form.reset();
+  const submitBtn = document.getElementById("paywallSubmit");
+  submitBtn.classList.remove("success");
+  submitBtn.querySelector(".paywall-submit-label").classList.remove("hidden");
+  submitBtn.querySelector(".paywall-spinner").classList.add("hidden");
+  document.getElementById("paywallOverlay").classList.remove("hidden");
+}
+
+function closePaywall() {
+  document.getElementById("paywallOverlay").classList.add("hidden");
+  pendingPremiumAction = null;
 }
 
 /* -------------------------------------------------------------------------
@@ -407,7 +503,7 @@ async function renderAchievements() {
   try {
     const data = await api("/dashboard");
     grid.innerHTML = data.badges.map((b) => `
-      <div class="badge ${b.unlocked ? "unlocked" : ""}">
+      <div class="badge ${b.unlocked ? "unlocked stamp" : ""}">
         <span class="badge-icon">${b.icon}</span>
         <div class="badge-name">${b.name}</div>
         <div class="badge-desc">${b.desc}</div>
@@ -424,6 +520,9 @@ async function renderAchievements() {
 
 document.addEventListener("DOMContentLoaded", () => {
   checkAuth();
+  initAmbientSparkles();
+  initCardTilt();
+  refreshGoldBadge();
 
   // Auth screen
   document.querySelectorAll(".auth-tab").forEach((tab) => {
@@ -594,17 +693,84 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document.getElementById("freezeStreakBtn").addEventListener("click", async () => {
-    const days = prompt("Freeze your streak for how many days?", "3");
-    const n = parseInt(days, 10);
-    if (!n || n <= 0) return;
-    try {
-      await api("/dashboard/freeze", { method: "POST", body: { days: n } });
-      showToast(`Streak frozen for ${n} day(s)`);
-      renderDashboard();
-    } catch (err) {
-      showToast(err.message);
-    }
+  document.getElementById("freezeStreakBtn").addEventListener("click", () => {
+    gateWithPaywall("Streak Freeze is a privilege of the Gold Circle.", async () => {
+      const days = prompt("Freeze your streak for how many days?", "3");
+      const n = parseInt(days, 10);
+      if (!n || n <= 0) return;
+      try {
+        await api("/dashboard/freeze", { method: "POST", body: { days: n } });
+        showToast(`Streak frozen for ${n} day(s) 👑`);
+        renderDashboard();
+      } catch (err) {
+        showToast(err.message);
+      }
+    });
+  });
+
+  document.getElementById("recoverStreakBtn").addEventListener("click", () => {
+    gateWithPaywall("Missed-Day Recovery is a privilege of the Gold Circle.", () => {
+      showToast("A member of our team has been dispatched to discreetly recover your missed day 👑");
+    });
+  });
+
+  // Paywall wiring
+  document.getElementById("paywallCard").addEventListener("input", (e) => {
+    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+  });
+  document.getElementById("paywallExpiry").addEventListener("input", (e) => {
+    let v = e.target.value.replace(/\D/g, "").slice(0, 4);
+    if (v.length > 2) v = `${v.slice(0, 2)} / ${v.slice(2)}`;
+    e.target.value = v;
+  });
+  document.getElementById("paywallCvc").addEventListener("input", (e) => {
+    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);
+  });
+
+  document.getElementById("paywallClose").addEventListener("click", closePaywall);
+  document.getElementById("paywallOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "paywallOverlay") closePaywall();
+  });
+
+  document.getElementById("paywallTiers").addEventListener("click", (e) => {
+    const tier = e.target.closest(".paywall-tier");
+    if (!tier) return;
+    document.querySelectorAll(".paywall-tier").forEach((t) => t.classList.toggle("selected", t === tier));
+    selectedPaywallTier = { tier: tier.dataset.tier, price: tier.dataset.price };
+    const unit = tier.dataset.tier === "annual" ? "/yr" : "/mo";
+    document.getElementById("paywallSubmitPrice").textContent = `$${tier.dataset.price}${unit}`;
+  });
+
+  document.getElementById("paywallForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("paywallSubmit");
+    const label = btn.querySelector(".paywall-submit-label");
+    const spinner = btn.querySelector(".paywall-spinner");
+    label.classList.add("hidden");
+    spinner.classList.remove("hidden");
+    btn.disabled = true;
+
+    setTimeout(() => {
+      setPremium();
+      spinner.classList.add("hidden");
+      label.classList.remove("hidden");
+      label.textContent = "Welcome to the Gold Circle 👑";
+      btn.classList.add("success");
+      spawnConfetti(120, 0.2);
+
+      setTimeout(() => {
+        closePaywall();
+        btn.disabled = false;
+        const unit = selectedPaywallTier.tier === "annual" ? "/yr" : "/mo";
+        label.innerHTML = `Join the Gold Circle — <span id="paywallSubmitPrice">$${selectedPaywallTier.price}${unit}</span>`;
+        btn.classList.remove("success");
+        if (pendingPremiumAction) {
+          const action = pendingPremiumAction;
+          pendingPremiumAction = null;
+          action();
+        }
+      }, 1100);
+    }, 1400);
   });
 
   document.getElementById("exportBtn").addEventListener("click", () => {
