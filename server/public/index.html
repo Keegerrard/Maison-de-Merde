@@ -35,6 +35,10 @@
         <label for="loginPassword">Password</label>
         <input type="password" id="loginPassword" required autocomplete="current-password" />
       </div>
+      <label class="checkbox-label remember-label">
+        <input type="checkbox" id="rememberMe" checked />
+        Remember me on this device
+      </label>
       <div id="loginError" class="auth-error hidden"></div>
       <button type="submit" class="btn btn-primary btn-big">Log In</button>
     </form>
@@ -77,6 +81,18 @@
         <span id="streakFlame">🔥</span>
         <span id="streakCount">0</span>
         <span class="streak-label">day streak</span>
+      </div>
+      <div class="bell-wrap">
+        <button class="bell-btn" id="bellBtn" aria-label="Notifications">
+          🔔<span id="bellBadge" class="bell-badge hidden">0</span>
+        </button>
+        <div class="notif-panel hidden" id="notifPanel">
+          <div class="notif-panel-header">
+            <span>Notifications</span>
+            <button class="notif-mark-all" id="notifMarkAll">Mark all read</button>
+          </div>
+          <div id="notifList" class="notif-list"></div>
+        </div>
       </div>
       <button class="btn btn-secondary btn-small" id="logoutBtn">Log out</button>
     </div>
@@ -166,16 +182,38 @@
           </div>
 
           <div class="field-group">
-            <label for="photoInput">Photo (optional — sent once for analysis, not stored unless you check "keep")</label>
-            <input type="file" id="photoInput" accept="image/*" />
-            <div id="photoPreviewWrap" class="hidden">
-              <img id="photoPreview" alt="preview" />
-              <div id="aiSuggestion" class="ai-suggestion hidden"></div>
-              <label class="checkbox-label small">
-                <input type="checkbox" id="keepPhoto" />
-                Keep this photo attached to this session (off by default)
-              </label>
+            <label>Photo (optional — sent once for analysis, not stored unless you check "keep")</label>
+
+            <div id="photoDropzone" class="dropzone">
+              <input type="file" id="photoInput" accept="image/*" class="dropzone-input" />
+              <div class="dropzone-prompt" id="dropzonePrompt">
+                <span class="dropzone-icon">🖼️</span>
+                <span class="dropzone-text"><strong>Drag a photo here</strong> or click to browse</span>
+                <span class="dropzone-hint">JPG or PNG, up to 8MB</span>
+              </div>
+              <div class="dropzone-preview hidden" id="dropzonePreview">
+                <img id="photoPreview" alt="preview" />
+                <div class="dropzone-preview-info">
+                  <span id="photoFileName" class="dropzone-filename"></span>
+                  <button type="button" class="btn btn-secondary btn-small" id="removePhotoBtn">Remove</button>
+                </div>
+              </div>
             </div>
+
+            <div id="aiSuggestion" class="ai-card hidden">
+              <div class="ai-card-header">
+                <span class="ai-card-icon">✦</span>
+                <span class="ai-card-title">Gold Circle Vision Estimate</span>
+                <span class="ai-card-confidence" id="aiConfidenceBadge"></span>
+              </div>
+              <div class="ai-card-body" id="aiCardBody"></div>
+              <p class="ai-card-disclaimer">A pattern-recognition aid, not a diagnosis — please confirm or correct the fields above.</p>
+            </div>
+
+            <label class="checkbox-label small hidden" id="keepPhotoWrap">
+              <input type="checkbox" id="keepPhoto" />
+              Keep this photo attached to this session (off by default)
+            </label>
           </div>
 
           <div class="field-group">
@@ -253,6 +291,12 @@
         <div id="friendRequests" class="friend-requests"></div>
         <div id="leaderboard" class="leaderboard"></div>
       </div>
+
+      <div class="card ornate">
+        <h2>Shared With You</h2>
+        <p class="muted">Sessions friends have chosen to share directly — nothing is shared automatically.</p>
+        <div id="sharedList" class="session-list"></div>
+      </div>
     </section>
 
     <!-- ACHIEVEMENTS TAB -->
@@ -328,6 +372,35 @@
     </form>
 
     <p class="paywall-fineprint">This is a demo paywall for a satirical app — no card is real, no payment is processed, and nothing is charged. Any details entered here go nowhere.</p>
+  </div>
+</div>
+
+<!-- SESSION DETAIL -->
+<div id="sessionDetailOverlay" class="celebration-overlay hidden">
+  <div class="detail-card ornate">
+    <button class="paywall-close" id="sessionDetailClose" aria-label="Close">&times;</button>
+    <h2 class="detail-title">Session Detail</h2>
+    <div id="sessionDetailBody" class="detail-body"></div>
+    <div id="sessionDetailShare" class="detail-share hidden">
+      <label for="shareFriendSelect">Share with a friend from your Circle</label>
+      <div class="field-row">
+        <select id="shareFriendSelect"></select>
+        <button class="btn btn-primary btn-small" id="shareSessionBtn">Share</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chatOverlay" class="celebration-overlay hidden">
+  <div class="chat-card ornate">
+    <button class="paywall-close" id="chatClose" aria-label="Close">&times;</button>
+    <h2 class="chat-title" id="chatTitle">Chat</h2>
+    <div id="chatMessages" class="chat-messages"></div>
+    <form id="chatForm" class="chat-form">
+      <input type="text" id="chatInput" placeholder="Say something…" maxlength="2000" autocomplete="off" />
+      <button type="submit" class="btn btn-primary btn-small">Send</button>
+    </form>
   </div>
 </div>
 

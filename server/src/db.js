@@ -108,8 +108,19 @@ if (driver === "postgres") {
 
   query = async (text, params = []) => {
     await ready;
-    const sqliteText = text.replace(/\$\d+/g, "?");
-    const bound = params.map(sanitizeParam);
+    // Build the bound-params array in lockstep with each individual `$N`
+    // occurrence rather than assuming one occurrence per param. Postgres
+    // lets a single placeholder (e.g. $1) be referenced more than once in
+    // the same query (e.g. "username = $1 OR email = $1", or the OR'd
+    // sender/recipient check in chat.js) and binds all occurrences to the
+    // same value — a naive params.map() one-to-one with the param list
+    // silently leaves later `?` positions unbound instead of repeating the
+    // value, which breaks anything past the first occurrence.
+    const bound = [];
+    const sqliteText = text.replace(/\$(\d+)/g, (_, n) => {
+      bound.push(sanitizeParam(params[Number(n) - 1]));
+      return "?";
+    });
     const stmt = sqljsDb.prepare(sqliteText);
     let rows = [];
     try {

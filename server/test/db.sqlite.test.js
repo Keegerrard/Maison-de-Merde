@@ -33,6 +33,8 @@ const sessionsRoutes = require("../src/routes/sessions");
 const dashboardRoutes = require("../src/routes/dashboard");
 const circleRoutes = require("../src/routes/circle");
 const visionRoutes = require("../src/routes/vision");
+const chatRoutes = require("../src/routes/chat");
+const notificationsRoutes = require("../src/routes/notifications");
 
 let failures = 0;
 function assert(cond, label) {
@@ -49,6 +51,8 @@ function makeApp() {
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/circle", circleRoutes);
   app.use("/api/vision", visionRoutes);
+  app.use("/api/chat", chatRoutes);
+  app.use("/api/notifications", notificationsRoutes);
   return app;
 }
 
@@ -57,6 +61,8 @@ function extractCookie(res) {
   return setCookie ? setCookie.split(";")[0] : null;
 }
 
+let server = null;
+
 async function main() {
   assert(driver === "sqlite", `driver auto-selected sqlite with no DATABASE_URL (got "${driver}")`);
 
@@ -64,7 +70,7 @@ async function main() {
   assert(fs.existsSync(process.env.SQLITE_PATH), "sqlite file was created on disk after migrations");
 
   const app = makeApp();
-  const server = http.createServer(app);
+  server = http.createServer(app);
   await new Promise((resolve) => server.listen(0, resolve));
   const port = server.address().port;
   const base = `http://localhost:${port}/api`;
@@ -137,6 +143,95 @@ async function main() {
   body = await res.json();
   assert(body.leaderboard.length === 2, `circle shows 2 people after accept (got ${body.leaderboard.length})`);
 
+  // --- Session detail + sharing ---
+  res = await fetch(`${base}/sessions?limit=1`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  const sessionId = body.sessions[0].id;
+
+  res = await fetch(`${base}/sessions/${sessionId}`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  assert(res.status === 200 && body.isOwner === true, "owner can view full session detail");
+
+  res = await fetch(`${base}/sessions/${sessionId}`, { headers: { Cookie: cookie2 } });
+  assert(res.status === 403, `non-owner without a share is forbidden (got ${res.status})`);
+
+  // Third user, not friended with marcus, to prove sharing is friends-only.
+  res = await fetch(`${base}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "casey", email: "casey@example.com", password: "correcthorse3" }),
+  });
+  const cookie3 = extractCookie(res);
+  res = await fetch(`${base}/sessions/${sessionId}/share`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie1 }, body: JSON.stringify({ username: "casey" }) });
+  assert(res.status === 400, `sharing with a non-friend is rejected (got ${res.status})`);
+
+  res = await fetch(`${base}/sessions/${sessionId}/share`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie1 }, body: JSON.stringify({ username: "priya" }) });
+  assert(res.status === 201, `sharing with a friend succeeds (got ${res.status})`);
+
+  res = await fetch(`${base}/sessions/${sessionId}`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(res.status === 200 && body.isOwner === false, "recipient can now view the shared session, not flagged as owner");
+
+  res = await fetch(`${base}/sessions/shared`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(body.sessions.length === 1 && body.sessions[0].shared_by_username === "marcus", "shared-with-me list shows the session with the sharer's username");
+
+  // --- Chat (friends-only) ---
+  res = await fetch(`${base}/chat/casey`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie1 }, body: JSON.stringify({ body: "hi" }) });
+  assert(res.status === 400, `chatting with a non-friend is rejected (got ${res.status})`);
+
+  res = await fetch(`${base}/chat/marcus`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie2 }, body: JSON.stringify({ body: "hey marcus" }) });
+  assert(res.status === 201, `priya can message her friend marcus (got ${res.status})`);
+
+  res = await fetch(`${base}/chat/priya`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  assert(body.messages.length === 1 && body.messages[0].body === "hey marcus" && body.messages[0].isMine === false, "marcus sees priya's message, correctly flagged as not his own");
+
+  res = await fetch(`${base}/chat/marcus`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(body.messages[0].isMine === true, "priya sees her own message flagged as hers");
+
+  // --- Notifications ---
+  res = await fetch(`${base}/notifications`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  const marcusTypes = body.notifications.map((n) => n.type);
+  assert(marcusTypes.includes("friend_accept") && marcusTypes.includes("message"), `marcus has friend_accept + message notifications (got ${JSON.stringify(marcusTypes)})`);
+  assert(body.unreadCount >= 2, `marcus has at least 2 unread notifications (got ${body.unreadCount})`);
+
+  res = await fetch(`${base}/notifications`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  const priyaTypes = body.notifications.map((n) => n.type);
+  assert(priyaTypes.includes("friend_request") && priyaTypes.includes("session_shared"), `priya has friend_request + session_shared notifications (got ${JSON.stringify(priyaTypes)})`);
+
+  const firstNotifId = body.notifications[0].id;
+  res = await fetch(`${base}/notifications/${firstNotifId}/read`, { method: "POST", headers: { Cookie: cookie2 } });
+  assert(res.status === 200, "marking a single notification read succeeds");
+  res = await fetch(`${base}/notifications`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(body.notifications.find((n) => n.id === firstNotifId).read === true, "that notification is now marked read");
+
+  res = await fetch(`${base}/notifications/read-all`, { method: "POST", headers: { Cookie: cookie2 } });
+  assert(res.status === 200, "mark-all-read succeeds");
+  res = await fetch(`${base}/notifications`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(body.unreadCount === 0, `unread count is 0 after mark-all-read (got ${body.unreadCount})`);
+
+  // --- Remember me: cookie persistence is opt-out via remember:false ---
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "casey", password: "correcthorse3", remember: false }) });
+  let rawSetCookie = res.headers.get("set-cookie") || "";
+  assert(res.status === 200 && !/Max-Age/i.test(rawSetCookie), `remember:false issues a session-only cookie with no Max-Age (got "${rawSetCookie}")`);
+
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "casey", password: "correcthorse3", remember: true }) });
+  rawSetCookie = res.headers.get("set-cookie") || "";
+  assert(res.status === 200 && /Max-Age/i.test(rawSetCookie), `remember:true issues a persistent cookie with Max-Age (got "${rawSetCookie}")`);
+
+  // Regression check: the login query reuses the same $1 placeholder twice
+  // ("username = $1 OR email = $1"), which is exactly the pattern that was
+  // silently broken in the SQLite adapter before the query() fix above —
+  // logging in with an email address would have failed here previously.
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "casey@example.com", password: "correcthorse3" }) });
+  assert(res.status === 200, `logging in with email instead of username works (got ${res.status})`);
+
   server.close();
   try { fs.unlinkSync(process.env.SQLITE_PATH); } catch (e) { /* best-effort cleanup */ }
 
@@ -146,5 +241,11 @@ async function main() {
 
 main().catch((e) => {
   console.error("TEST HARNESS THREW:", e);
+  // Force-exit even if the HTTP server is still listening — otherwise a
+  // failed assertion partway through leaves an open handle and the
+  // process hangs indefinitely instead of reporting failure.
+  if (server) server.close();
+  try { fs.unlinkSync(process.env.SQLITE_PATH); } catch (e2) { /* best-effort cleanup */ }
   process.exitCode = 1;
+  process.exit(1);
 });

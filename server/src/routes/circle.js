@@ -2,6 +2,7 @@ const express = require("express");
 const { query } = require("../db");
 const { requireAuth } = require("../auth");
 const { calcStreak, daysBetween, todayISO, toISODateString, toISOStringSafe } = require("../streak");
+const { notify } = require("../notifications");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -79,6 +80,11 @@ router.post("/friends", async (req, res) => {
     if (reciprocal.rows.length) {
       await query("UPDATE friendships SET status = 'accepted' WHERE user_id = $1 AND friend_id = $2", [target.id, req.userId]);
       await query("UPDATE friendships SET status = 'accepted' WHERE user_id = $1 AND friend_id = $2", [req.userId, target.id]);
+      const meRes = await query("SELECT username FROM users WHERE id = $1", [req.userId]);
+      await notify(target.id, "friend_accept", { username: meRes.rows[0].username });
+    } else {
+      const meRes = await query("SELECT username FROM users WHERE id = $1", [req.userId]);
+      await notify(target.id, "friend_request", { username: meRes.rows[0].username });
     }
 
     res.status(201).json({ ok: true });
@@ -114,6 +120,8 @@ router.post("/requests/:userId/accept", async (req, res) => {
        ON CONFLICT (user_id, friend_id) DO UPDATE SET status = 'accepted'`,
       [req.userId, requesterId]
     );
+    const meRes = await query("SELECT username FROM users WHERE id = $1", [req.userId]);
+    await notify(requesterId, "friend_accept", { username: meRes.rows[0].username });
     res.json({ ok: true });
   } catch (e) {
     console.error("accept request error", e);

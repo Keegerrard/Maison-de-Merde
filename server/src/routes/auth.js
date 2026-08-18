@@ -29,7 +29,7 @@ router.post("/signup", async (req, res) => {
     );
     const user = result.rows[0];
     const token = signToken(user.id);
-    setSessionCookie(res, token);
+    setSessionCookie(res, token, true);
     res.status(201).json({ id: user.id, username: user.username });
   } catch (e) {
     console.error("signup error", e);
@@ -38,7 +38,7 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body || {};
+  const { username, password, remember } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: "Username and password required." });
 
   try {
@@ -48,7 +48,7 @@ router.post("/login", async (req, res) => {
     const ok = await verifyPassword(password, user.password_hash);
     if (!ok) return res.status(401).json({ error: "Invalid credentials." });
     const token = signToken(user.id);
-    setSessionCookie(res, token);
+    setSessionCookie(res, token, remember !== false);
     res.json({ id: user.id, username: user.username });
   } catch (e) {
     console.error("login error", e);

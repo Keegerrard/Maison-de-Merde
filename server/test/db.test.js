@@ -35,6 +35,8 @@ const sessionsRoutes = require("../src/routes/sessions");
 const dashboardRoutes = require("../src/routes/dashboard");
 const circleRoutes = require("../src/routes/circle");
 const visionRoutes = require("../src/routes/vision");
+const chatRoutes = require("../src/routes/chat");
+const notificationsRoutes = require("../src/routes/notifications");
 
 let failures = 0;
 function assert(cond, label) {
@@ -51,6 +53,8 @@ function makeApp() {
   app.use("/api/dashboard", dashboardRoutes);
   app.use("/api/circle", circleRoutes);
   app.use("/api/vision", visionRoutes);
+  app.use("/api/chat", chatRoutes);
+  app.use("/api/notifications", notificationsRoutes);
   return app;
 }
 
@@ -60,12 +64,14 @@ function extractCookie(res) {
   return setCookie.split(";")[0];
 }
 
+let server = null;
+
 async function main() {
   await runMigrations();
   console.log("[test] migrations applied against pg-mem\n");
 
   const app = makeApp();
-  const server = http.createServer(app);
+  server = http.createServer(app);
   await new Promise((resolve) => server.listen(0, resolve));
   const port = server.address().port;
   const base = `http://localhost:${port}/api`;
@@ -192,6 +198,61 @@ async function main() {
   });
   assert(res.status === 404, "adding a nonexistent username returns 404");
 
+  // --- Session detail + sharing ---
+  res = await fetch(`${base}/sessions?limit=1`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  const sessionId = body.sessions[0].id;
+
+  res = await fetch(`${base}/sessions/${sessionId}`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  assert(res.status === 200 && body.isOwner === true, "owner can view full session detail");
+
+  res = await fetch(`${base}/sessions/${sessionId}`, { headers: { Cookie: cookie2 } });
+  assert(res.status === 403, `non-owner without a share is forbidden (got ${res.status})`);
+
+  res = await fetch(`${base}/sessions/${sessionId}/share`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie1 }, body: JSON.stringify({ username: "priya" }) });
+  assert(res.status === 201, `sharing with a friend succeeds (got ${res.status})`);
+
+  res = await fetch(`${base}/sessions/${sessionId}`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(res.status === 200 && body.isOwner === false, "recipient can view the shared session, not flagged as owner");
+
+  res = await fetch(`${base}/sessions/shared`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(body.sessions.length === 1 && body.sessions[0].shared_by_username === "marcus", "shared-with-me list shows the sharer's username");
+
+  // --- Chat (friends-only), including the same repeated-$1-placeholder
+  // pattern that broke in the SQLite adapter — pg-mem uses real Postgres
+  // param binding so this was never at risk there, but keeping the same
+  // scenario covered in both suites documents that fact rather than
+  // assuming it.
+  res = await fetch(`${base}/chat/marcus`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie2 }, body: JSON.stringify({ body: "hey marcus" }) });
+  assert(res.status === 201, `priya can message her friend marcus (got ${res.status})`);
+
+  res = await fetch(`${base}/chat/priya`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  assert(body.messages.length === 1 && body.messages[0].isMine === false, "marcus sees priya's message, correctly flagged as not his own");
+
+  // --- Notifications ---
+  res = await fetch(`${base}/notifications`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  const marcusTypes = body.notifications.map((n) => n.type);
+  assert(marcusTypes.includes("friend_accept") && marcusTypes.includes("message"), `marcus has friend_accept + message notifications (got ${JSON.stringify(marcusTypes)})`);
+
+  res = await fetch(`${base}/notifications/read-all`, { method: "POST", headers: { Cookie: cookie1 } });
+  assert(res.status === 200, "mark-all-read succeeds");
+  res = await fetch(`${base}/notifications`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  assert(body.unreadCount === 0, `unread count is 0 after mark-all-read (got ${body.unreadCount})`);
+
+  // --- Remember me ---
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus", password: "correcthorse1", remember: false }) });
+  let rawSetCookie = res.headers.get("set-cookie") || "";
+  assert(res.status === 200 && !/Max-Age/i.test(rawSetCookie), `remember:false issues a session-only cookie (got "${rawSetCookie}")`);
+
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus@example.com", password: "correcthorse1" }) });
+  assert(res.status === 200, `logging in with email instead of username works (got ${res.status})`);
+
   server.close();
   console.log(failures === 0 ? "\nAll db.test.js checks passed." : `\n${failures} check(s) FAILED.`);
   process.exitCode = failures === 0 ? 0 : 1;
@@ -199,5 +260,7 @@ async function main() {
 
 main().catch((e) => {
   console.error("TEST HARNESS THREW:", e);
+  if (server) server.close();
   process.exitCode = 1;
+  process.exit(1);
 });

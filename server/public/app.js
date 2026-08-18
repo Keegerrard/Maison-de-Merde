@@ -192,6 +192,7 @@ async function checkAuth() {
 function showAuthScreen() {
   document.getElementById("authScreen").classList.remove("hidden");
   document.getElementById("app").classList.add("hidden");
+  stopNotificationPolling();
 }
 
 function showApp() {
@@ -199,6 +200,8 @@ function showApp() {
   document.getElementById("app").classList.remove("hidden");
   renderSessionList();
   renderStreakPill();
+  refreshNotifications();
+  startNotificationPolling();
 }
 
 function switchAuthForm(which) {
@@ -257,6 +260,296 @@ function closePaywall() {
 }
 
 /* -------------------------------------------------------------------------
+   Notifications — polled rather than pushed (no websocket infra here).
+   Friend requests/accepts, shared sessions, and chat messages all create
+   a notification server-side; this just surfaces them.
+   ------------------------------------------------------------------------- */
+
+let notifPollTimer = null;
+let notifPanelOpen = false;
+
+function startNotificationPolling() {
+  stopNotificationPolling();
+  notifPollTimer = setInterval(refreshNotifications, 20000);
+}
+
+function stopNotificationPolling() {
+  if (notifPollTimer) clearInterval(notifPollTimer);
+  notifPollTimer = null;
+}
+
+async function refreshNotifications() {
+  try {
+    const data = await api("/notifications");
+    const badge = document.getElementById("bellBadge");
+    if (data.unreadCount > 0) {
+      badge.textContent = data.unreadCount > 9 ? "9+" : String(data.unreadCount);
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
+    if (notifPanelOpen) renderNotifList(data.notifications);
+    return data.notifications;
+  } catch (e) {
+    return [];
+  }
+}
+
+function notifCopy(n) {
+  const username = escapeHtml(n.payload.username || "Someone");
+  const preview = escapeHtml(n.payload.preview || "sent a message");
+  switch (n.type) {
+    case "friend_request": return { icon: "🤝", text: `<strong>${username}</strong> wants to join your Circle.` };
+    case "friend_accept": return { icon: "👑", text: `<strong>${username}</strong> accepted your Circle invitation.` };
+    case "message": return { icon: "💬", text: `<strong>${username}</strong>: ${preview}` };
+    case "session_shared": return { icon: "📋", text: `<strong>${username}</strong> shared a session with you.` };
+    default: return { icon: "🔔", text: "New notification." };
+  }
+}
+
+function timeAgo(iso) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
+}
+
+function renderNotifList(notifications) {
+  const list = document.getElementById("notifList");
+  if (!notifications.length) {
+    list.innerHTML = `<div class="notif-empty">Nothing yet — quiet in the Circle.</div>`;
+    return;
+  }
+  list.innerHTML = notifications.map((n) => {
+    const { icon, text } = notifCopy(n);
+    return `
+      <div class="notif-row ${n.read ? "" : "unread"}" data-id="${n.id}" data-type="${n.type}" data-payload='${JSON.stringify(n.payload).replace(/'/g, "&#39;")}'>
+        <span class="notif-icon">${icon}</span>
+        <div>
+          <div class="notif-text">${text}</div>
+          <div class="notif-time">${timeAgo(n.created_at)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function toggleNotifPanel() {
+  const panel = document.getElementById("notifPanel");
+  notifPanelOpen = !notifPanelOpen;
+  panel.classList.toggle("hidden", !notifPanelOpen);
+  if (notifPanelOpen) {
+    const notifications = await refreshNotifications();
+    renderNotifList(notifications);
+  }
+}
+
+async function handleNotifClick(row) {
+  const id = row.dataset.id;
+  const type = row.dataset.type;
+  let payload = {};
+  try { payload = JSON.parse(row.dataset.payload); } catch (e) { /* ignore */ }
+
+  try { await api(`/notifications/${id}/read`, { method: "POST" }); } catch (e) { /* non-fatal */ }
+  refreshNotifications();
+
+  if (type === "message") {
+    openChat(payload.username);
+  } else if (type === "friend_request" || type === "friend_accept") {
+    document.getElementById("notifPanel").classList.add("hidden");
+    notifPanelOpen = false;
+    switchTab("circle");
+  } else if (type === "session_shared" && payload.sessionId) {
+    document.getElementById("notifPanel").classList.add("hidden");
+    notifPanelOpen = false;
+    openSessionDetail(payload.sessionId);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Session detail modal — full view of a single session, with an explicit
+   per-session share control (never a Circle-wide default share).
+   ------------------------------------------------------------------------- */
+
+let currentDetailSessionId = null;
+
+const COLOR_LABELS = { brown: "Brown (typical)", "dark-brown": "Dark brown", green: "Green", yellow: "Yellow", pale: "Pale / clay", black: "Black", red: "Red" };
+const ODOR_LABELS = { typical: "Typical", mild: "Milder than usual", strong: "Stronger than usual", severe: "Much stronger than usual" };
+const PAIN_LABELS = { none: "None", mild: "Mild", moderate: "Moderate", severe: "Severe" };
+
+function detailRow(label, value) {
+  if (value === null || value === undefined || value === "") return "";
+  return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${value}</span></div>`;
+}
+
+async function openSessionDetail(id) {
+  currentDetailSessionId = id;
+  const overlay = document.getElementById("sessionDetailOverlay");
+  const body = document.getElementById("sessionDetailBody");
+  const shareWrap = document.getElementById("sessionDetailShare");
+  body.innerHTML = skeletonRows(4);
+  shareWrap.classList.add("hidden");
+  overlay.classList.remove("hidden");
+
+  try {
+    const { session, isOwner } = await api(`/sessions/${id}`);
+    const d = new Date(session.occurred_at);
+    const time = d.toLocaleString(undefined, { weekday: "long", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+
+    let html = detailRow("Logged", time);
+    if (session.bristol_type) html += detailRow("Bristol Type", `Type ${session.bristol_type}`);
+    else html += detailRow("Type", "Quick log — no details recorded");
+    if (session.color) html += detailRow("Color", COLOR_LABELS[session.color] || session.color);
+    if (session.odor) html += detailRow("Odor", ODOR_LABELS[session.odor] || session.odor);
+    if (session.pain) html += detailRow("Pain / straining", PAIN_LABELS[session.pain] || session.pain);
+    if (session.visibleFood) html += detailRow("Visible food", "Yes");
+    if (session.bloodFlag) html += detailRow("Blood present", "⚠ Yes");
+    if (session.symptoms && session.symptoms.length) html += detailRow("Symptoms", escapeHtml(session.symptoms.join(", ")));
+    if (session.aiSuggested) html += detailRow("AI-assisted", `Yes${session.ai_confidence ? ` (${Math.round(session.ai_confidence * 100)}% confidence)` : ""}`);
+
+    body.innerHTML = html || `<div class="empty-state">No details recorded for this session.</div>`;
+
+    if (session.notes) {
+      body.innerHTML += `<div class="detail-notes">"${escapeHtml(session.notes)}"</div>`;
+    }
+    if (session.photo_kept) {
+      body.innerHTML += `<img class="detail-photo" src="${session.photo_kept}" alt="session photo" />`;
+    }
+
+    if (isOwner) {
+      shareWrap.classList.remove("hidden");
+      await populateFriendSelect();
+    } else {
+      body.innerHTML += `<p class="detail-shared-note">Shared with you from a friend's Circle.</p>`;
+    }
+  } catch (err) {
+    body.innerHTML = `<div class="empty-state">${err.message}</div>`;
+  }
+}
+
+function closeSessionDetail() {
+  document.getElementById("sessionDetailOverlay").classList.add("hidden");
+  currentDetailSessionId = null;
+}
+
+async function populateFriendSelect() {
+  const select = document.getElementById("shareFriendSelect");
+  select.innerHTML = `<option>Loading…</option>`;
+  try {
+    const { leaderboard } = await api("/circle");
+    const friends = leaderboard.filter((r) => !r.isMe);
+    if (!friends.length) {
+      select.innerHTML = `<option value="">No friends in your Circle yet</option>`;
+      return;
+    }
+    select.innerHTML = friends.map((f) => `<option value="${f.username}">${f.username}</option>`).join("");
+  } catch (e) {
+    select.innerHTML = `<option value="">Couldn't load friends</option>`;
+  }
+}
+
+async function shareCurrentSession() {
+  const username = document.getElementById("shareFriendSelect").value;
+  if (!username || !currentDetailSessionId) return;
+  try {
+    await api(`/sessions/${currentDetailSessionId}/share`, { method: "POST", body: { username } });
+    showToast(`Shared with ${username} 📋`);
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+async function renderSharedSessions() {
+  const list = document.getElementById("sharedList");
+  if (!list) return;
+  list.innerHTML = skeletonRows(2);
+  try {
+    const { sessions } = await api("/sessions/shared");
+    if (!sessions.length) {
+      list.innerHTML = `<div class="empty-state">No shared sessions yet.</div>`;
+      return;
+    }
+    list.innerHTML = sessions.map((s) => {
+      const d = new Date(s.occurred_at);
+      const time = d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      return `
+        <div class="session-item" data-shared-id="${s.id}">
+          <span class="session-time">${time}</span>
+          <span class="session-tags"><span class="tag">from ${s.shared_by_username}</span>${s.bristol_type ? `<span class="tag">Type ${s.bristol_type}</span>` : ""}</span>
+        </div>
+      `;
+    }).join("");
+  } catch (e) {
+    list.innerHTML = `<div class="empty-state">Couldn't load shared sessions.</div>`;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Chat — 1:1 threads with confirmed friends only. Polled while open.
+   ------------------------------------------------------------------------- */
+
+let currentChatUsername = null;
+let chatPollTimer = null;
+
+async function openChat(username) {
+  currentChatUsername = username;
+  document.getElementById("chatTitle").textContent = `Chat with ${username}`;
+  document.getElementById("chatOverlay").classList.remove("hidden");
+  document.getElementById("chatMessages").innerHTML = skeletonRows(3);
+  await loadChat();
+  clearInterval(chatPollTimer);
+  chatPollTimer = setInterval(loadChat, 5000);
+  document.getElementById("chatInput").focus();
+}
+
+function closeChat() {
+  document.getElementById("chatOverlay").classList.add("hidden");
+  clearInterval(chatPollTimer);
+  chatPollTimer = null;
+  currentChatUsername = null;
+}
+
+async function loadChat() {
+  if (!currentChatUsername) return;
+  try {
+    const { messages } = await api(`/chat/${currentChatUsername}`);
+    const el = document.getElementById("chatMessages");
+    const wasAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
+    if (!messages.length) {
+      el.innerHTML = `<div class="chat-empty">No messages yet — say hello.</div>`;
+    } else {
+      el.innerHTML = messages.map((m) => `<div class="chat-msg ${m.isMine ? "mine" : "theirs"}">${escapeHtml(m.body)}</div>`).join("");
+    }
+    if (wasAtBottom) el.scrollTop = el.scrollHeight;
+    refreshNotifications();
+  } catch (e) {
+    // Friendship might have changed etc. — fail quietly, chat is non-critical.
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const body = input.value.trim();
+  if (!body || !currentChatUsername) return;
+  input.value = "";
+  try {
+    await api(`/chat/${currentChatUsername}`, { method: "POST", body: { body } });
+    await loadChat();
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
+/* -------------------------------------------------------------------------
    Toast + tabs
    ------------------------------------------------------------------------- */
 
@@ -293,7 +586,103 @@ function resetDetailForm() {
   document.querySelectorAll(".bristol-opt").forEach((b) => b.classList.remove("selected"));
   document.querySelectorAll(".chip").forEach((c) => c.classList.remove("selected"));
   document.getElementById("analysisForm").reset();
-  document.getElementById("photoPreviewWrap").classList.add("hidden");
+  document.getElementById("dropzonePreview").classList.add("hidden");
+  document.getElementById("dropzonePrompt").classList.remove("hidden");
+  document.getElementById("keepPhotoWrap").classList.add("hidden");
+  document.getElementById("aiSuggestion").classList.add("hidden");
+  document.getElementById("aiSuggestion").className = "ai-card hidden";
+}
+
+/**
+ * Renders the AI vision result as a structured card instead of one inline
+ * sentence. `state` is "loading" | "withheld" | "result" | "error".
+ */
+function renderAiCard(state, data) {
+  const card = document.getElementById("aiSuggestion");
+  const badge = document.getElementById("aiConfidenceBadge");
+  const body = document.getElementById("aiCardBody");
+  card.classList.remove("hidden");
+  card.classList.toggle("pending", state === "loading");
+
+  if (state === "loading") {
+    badge.textContent = "";
+    badge.className = "ai-card-confidence";
+    body.innerHTML = `<div class="ai-card-empty">Analyzing photo…</div>`;
+    return;
+  }
+
+  if (state === "error") {
+    badge.textContent = "";
+    badge.className = "ai-card-confidence";
+    body.innerHTML = `<div class="ai-card-empty">${escapeHtml(data.message || "Photo analysis unavailable.")}</div>`;
+    return;
+  }
+
+  if (state === "withheld") {
+    badge.textContent = `${Math.round((data.confidence || 0) * 100)}%`;
+    badge.className = "ai-card-confidence";
+    body.innerHTML = `<div class="ai-card-empty">Not confident enough to make a call on this photo — please set the fields above manually.</div>`;
+    return;
+  }
+
+  const confidencePct = Math.round((data.confidence || 0) * 100);
+  badge.textContent = `${confidencePct}% confident`;
+  badge.className = "ai-card-confidence " + (confidencePct >= 60 ? "high" : confidencePct >= 45 ? "medium" : "");
+
+  const rows = [];
+  if (data.bristolTypeGuess) rows.push(`<div class="ai-row"><span class="ai-row-label">Bristol Type</span><span class="ai-row-value">Type ${data.bristolTypeGuess}</span></div>`);
+  if (data.colorGuess) rows.push(`<div class="ai-row"><span class="ai-row-label">Color</span><span class="ai-row-value">${escapeHtml(COLOR_LABELS[data.colorGuess] || data.colorGuess)}</span></div>`);
+  if (data.visibleFoodGuess) rows.push(`<div class="ai-row"><span class="ai-row-label">Visible food</span><span class="ai-row-value">Likely present</span></div>`);
+  body.innerHTML = rows.length ? rows.join("") : `<div class="ai-card-empty">No strong signal on any specific attribute.</div>`;
+  if (data.notes) body.innerHTML += `<div class="ai-note">"${escapeHtml(data.notes)}"</div>`;
+}
+
+async function handlePhotoFile(file) {
+  if (!file || !file.type.startsWith("image/")) {
+    showToast("Please choose an image file.");
+    return;
+  }
+  pendingPhotoFile = file;
+
+  document.getElementById("photoPreview").src = URL.createObjectURL(file);
+  document.getElementById("photoFileName").textContent = file.name;
+  document.getElementById("dropzonePrompt").classList.add("hidden");
+  document.getElementById("dropzonePreview").classList.remove("hidden");
+  document.getElementById("keepPhotoWrap").classList.remove("hidden");
+
+  renderAiCard("loading");
+
+  try {
+    const fd = new FormData();
+    fd.append("photo", file);
+    const result = await api("/vision/analyze", { method: "POST", body: fd });
+    if (result.withheld) {
+      pendingAiSuggestion = null;
+      renderAiCard("withheld", result);
+    } else {
+      pendingAiSuggestion = result;
+      renderAiCard("result", result);
+      if (result.colorGuess) document.getElementById("colorSelect").value = result.colorGuess;
+      if (result.bristolTypeGuess) {
+        document.querySelectorAll(".bristol-opt").forEach((b) => b.classList.toggle("selected", Number(b.dataset.value) === result.bristolTypeGuess));
+        pendingBristol = result.bristolTypeGuess;
+      }
+      if (result.visibleFoodGuess) document.getElementById("visibleFood").checked = true;
+    }
+  } catch (err) {
+    pendingAiSuggestion = null;
+    renderAiCard("error", { message: err.message });
+  }
+}
+
+function removePendingPhoto() {
+  pendingPhotoFile = null;
+  pendingAiSuggestion = null;
+  document.getElementById("photoInput").value = "";
+  document.getElementById("dropzonePreview").classList.add("hidden");
+  document.getElementById("dropzonePrompt").classList.remove("hidden");
+  document.getElementById("keepPhotoWrap").classList.add("hidden");
+  document.getElementById("keepPhoto").checked = false;
   document.getElementById("aiSuggestion").classList.add("hidden");
 }
 
@@ -377,7 +766,7 @@ async function renderSessionList() {
       } else {
         tags.push(`<span class="tag">quick log</span>`);
       }
-      return `<div class="session-item"><span class="session-time">${time}</span><span class="session-tags">${tags.join("")}</span></div>`;
+      return `<div class="session-item" data-id="${s.id}"><span class="session-time">${time}</span><span class="session-tags">${tags.join("")}</span></div>`;
     }).join("");
   } catch (e) {
     list.innerHTML = `<div class="empty-state">Couldn't load sessions.</div>`;
@@ -486,11 +875,13 @@ async function renderCircle() {
         <span class="avatar">${r.isMe ? "🫵" : "🧑"}</span>
         <span class="lb-name">${r.username}${r.isMe ? " (you)" : ""}</span>
         <span class="lb-stat">${r.streak}d streak · ${Math.round(r.consistency * 100)}% consistent</span>
+        ${r.isMe ? "" : `<span class="leaderboard-row-actions"><button type="button" class="icon-btn" data-chat="${r.username}" title="Chat">💬</button></span>`}
       </div>
     `).join("");
   } catch (e) {
     el.innerHTML = `<div class="empty-state">Couldn't load circle.</div>`;
   }
+  renderSharedSessions();
 }
 
 /* -------------------------------------------------------------------------
@@ -539,6 +930,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: {
           username: document.getElementById("loginUsername").value.trim(),
           password: document.getElementById("loginPassword").value,
+          remember: document.getElementById("rememberMe").checked,
         },
       });
       showApp();
@@ -619,44 +1011,34 @@ document.addEventListener("DOMContentLoaded", () => {
     else pendingSymptoms.delete(chip.dataset.value);
   });
 
-  document.getElementById("photoInput").addEventListener("change", async (e) => {
+  document.getElementById("photoInput").addEventListener("change", (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-    pendingPhotoFile = file;
+    if (file) handlePhotoFile(file);
+  });
 
-    const img = document.getElementById("photoPreview");
-    img.src = URL.createObjectURL(file);
-    document.getElementById("photoPreviewWrap").classList.remove("hidden");
+  document.getElementById("removePhotoBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    removePendingPhoto();
+  });
 
-    const suggestionEl = document.getElementById("aiSuggestion");
-    suggestionEl.textContent = "Analyzing photo…";
-    suggestionEl.classList.remove("hidden");
-
-    try {
-      const fd = new FormData();
-      fd.append("photo", file);
-      const result = await api("/vision/analyze", { method: "POST", body: fd });
-      if (result.withheld) {
-        pendingAiSuggestion = null;
-        suggestionEl.innerHTML = `Model wasn't confident enough to make a call on this photo — please set fields manually.`;
-      } else {
-        pendingAiSuggestion = result;
-        const parts = [];
-        if (result.colorGuess) parts.push(`color looks like "${result.colorGuess}"`);
-        if (result.bristolTypeGuess) parts.push(`Bristol type looks like ${result.bristolTypeGuess}`);
-        if (result.notes) parts.push(result.notes);
-        suggestionEl.innerHTML = `<strong>AI estimate (confidence ${Math.round(result.confidence * 100)}%):</strong> ${parts.join(", ") || "no strong signal"}. Please confirm or correct the fields above — this is a pattern-recognition aid, not a diagnosis.`;
-        if (result.colorGuess) document.getElementById("colorSelect").value = result.colorGuess;
-        if (result.bristolTypeGuess) {
-          document.querySelectorAll(".bristol-opt").forEach((b) => b.classList.toggle("selected", Number(b.dataset.value) === result.bristolTypeGuess));
-          pendingBristol = result.bristolTypeGuess;
-        }
-        if (result.visibleFoodGuess) document.getElementById("visibleFood").checked = true;
-      }
-    } catch (err) {
-      pendingAiSuggestion = null;
-      suggestionEl.textContent = `Photo analysis unavailable: ${err.message}`;
-    }
+  const dropzone = document.getElementById("photoDropzone");
+  ["dragenter", "dragover"].forEach((evt) => {
+    dropzone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropzone.classList.add("drag-over");
+    });
+  });
+  ["dragleave", "dragend"].forEach((evt) => {
+    dropzone.addEventListener(evt, (e) => {
+      if (evt === "dragleave" && dropzone.contains(e.relatedTarget)) return;
+      dropzone.classList.remove("drag-over");
+    });
+  });
+  dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzone.classList.remove("drag-over");
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) handlePhotoFile(file);
   });
 
   document.getElementById("analysisForm").addEventListener("submit", async (e) => {
@@ -803,9 +1185,65 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Chat button on each Circle row
+  document.getElementById("leaderboard").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-chat]");
+    if (btn) openChat(btn.dataset.chat);
+  });
+
   document.getElementById("celebrationDismiss").addEventListener("click", () => {
     document.getElementById("celebrationOverlay").classList.add("hidden");
     showNextCelebration();
+  });
+
+  // Session detail modal — opened from either the Recent Sessions list or
+  // the Shared With You list.
+  document.getElementById("sessionList").addEventListener("click", (e) => {
+    const row = e.target.closest("[data-id]");
+    if (row) openSessionDetail(row.dataset.id);
+  });
+  document.getElementById("sharedList").addEventListener("click", (e) => {
+    const row = e.target.closest("[data-shared-id]");
+    if (row) openSessionDetail(row.dataset.sharedId);
+  });
+  document.getElementById("sessionDetailClose").addEventListener("click", closeSessionDetail);
+  document.getElementById("sessionDetailOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "sessionDetailOverlay") closeSessionDetail();
+  });
+  document.getElementById("shareSessionBtn").addEventListener("click", shareCurrentSession);
+
+  // Chat modal
+  document.getElementById("chatClose").addEventListener("click", closeChat);
+  document.getElementById("chatOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "chatOverlay") closeChat();
+  });
+  document.getElementById("chatForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    sendChatMessage();
+  });
+
+  // Notification bell
+  document.getElementById("bellBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleNotifPanel();
+  });
+  document.getElementById("notifList").addEventListener("click", (e) => {
+    const row = e.target.closest(".notif-row");
+    if (row) handleNotifClick(row);
+  });
+  document.getElementById("notifMarkAll").addEventListener("click", async (e) => {
+    e.stopPropagation();
+    try {
+      await api("/notifications/read-all", { method: "POST" });
+      const notifications = await refreshNotifications();
+      renderNotifList(notifications);
+    } catch (err) { /* non-fatal */ }
+  });
+  document.addEventListener("click", (e) => {
+    const panel = document.getElementById("notifPanel");
+    if (!notifPanelOpen || panel.contains(e.target) || e.target.closest("#bellBtn")) return;
+    notifPanelOpen = false;
+    panel.classList.add("hidden");
   });
 });
 
