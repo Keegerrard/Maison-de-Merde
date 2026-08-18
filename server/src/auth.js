@@ -24,13 +24,18 @@ function signToken(userId) {
   return jwt.sign({ sub: userId }, getJwtSecret(), { expiresIn: JWT_EXPIRY });
 }
 
-function setSessionCookie(res, token) {
-  res.cookie(COOKIE_NAME, token, {
+// remember=true (the default) sets a 30-day persistent cookie — the JWT
+// itself is always signed with a 30-day expiry either way, but a
+// non-persistent cookie is discarded by the browser when it's closed,
+// giving "remember me" an actual effect instead of always being on.
+function setSessionCookie(res, token, remember = true) {
+  const opts = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
+  };
+  if (remember) opts.maxAge = 30 * 24 * 60 * 60 * 1000;
+  res.cookie(COOKIE_NAME, token, opts);
 }
 
 function clearSessionCookie(res) {
