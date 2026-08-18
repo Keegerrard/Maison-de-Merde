@@ -2,9 +2,12 @@ services:
   - type: web
     name: maison-de-merde
     runtime: node
-    rootDir: server
     plan: free
-    buildCommand: npm install
+    # Root Directory is intentionally unset (repo root) — the build needs
+    # both web/ (Next.js frontend) and server/ (Express API). `npm run
+    # build` compiles web/ and copies its static export into
+    # server/public/, which the Express process then serves.
+    buildCommand: npm install && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:

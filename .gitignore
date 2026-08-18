@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.log
+web/.next/
+web/out/
+web/tsconfig.tsbuildinfo
+server/public/
+server/data/
+.DS_Store

@@ -1,9 +1,18 @@
 # Deploying Maison de Merde to Render + Neon
 
-This backend (`/server`) is a single Node/Express service that serves both
-the API and the static frontend (`server/public/`), backed by a managed
-Postgres database. Render hosts the app; Neon hosts the database — Render's
-own free Postgres expires after 30 days, Neon's free tier doesn't.
+This is a two-workspace monorepo: `web/` (Next.js 14 App Router + TypeScript
++ Tailwind + Framer Motion — the landing page, journal articles, and the
+in-app SPA) and `server/` (Express + Postgres/SQLite-fallback — the API).
+There is still only **one deployed service**: `npm run build` at the repo
+root compiles `web/` to a static export and copies it into `server/public/`,
+which Express then serves exactly as before. Render hosts that one service;
+Neon hosts the database — Render's own free Postgres expires after 30 days,
+Neon's free tier doesn't.
+
+**`server/public/` is now a build artifact, not a checked-in folder.** It is
+git-ignored and is populated by `npm run build`. Running the server without
+building first serves an empty directory and 500s on every page request —
+if you ever see that, you skipped the build step. See "Local preview" below.
 
 ## 0. Prerequisites
 
@@ -51,9 +60,9 @@ into `DATABASE_URL`.
    | Name | `maison-de-merde` (or anything) |
    | Region | Same region you picked for Neon, if possible |
    | Branch | `main` (or whatever you push to) |
-   | Root Directory | `server` |
+   | Root Directory | *(leave blank — repo root)* |
    | Runtime | Node |
-   | Build Command | `npm install` |
+   | Build Command | `npm install && npm run build` |
    | Start Command | `npm start` |
    | Instance Type | **Free** |
 
@@ -71,6 +80,14 @@ Still on the service creation page (or later under **Environment**), add:
 | `JWT_SECRET` | A long random string. Generate one locally with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `OPENAI_API_KEY` | Your OpenAI key. Leave unset if you want to launch without photo analysis for now — the rest of the app works fine, and `/api/vision/analyze` just returns a clear 503 instead of crashing. |
 | `NODE_ENV` | `production` |
+
+No other environment variables are needed. **Leave `CORS_ORIGIN` unset.**
+The session cookie is issued with `sameSite: "lax"` (see `src/auth.js`),
+which browsers will not attach to a cross-site request — so a frontend
+served from a different origin than the API would authenticate once and
+then 401 on every subsequent request. That's why this is a single service:
+the exported `web/` build is served by this same Express process, same
+origin, no CORS needed, ever.
 
 Then click **Create Web Service**.
 
@@ -117,12 +134,14 @@ https://neon.tech/pricing for current numbers before you commit real usage.
 ## Local preview (zero setup, no Postgres needed)
 
 For just trying the app out on your own machine before deploying anywhere,
-you don't need Postgres, Docker, or a `.env` file at all:
+you don't need Postgres, Docker, or a `.env` file at all — but you DO need
+to build the frontend once before the first `npm start`, since
+`server/public/` no longer ships pre-built:
 
 ```bash
-cd server
-npm install
-npm start
+npm install       # installs both workspaces (web/ and server/) from the repo root
+npm run build     # compiles web/ and copies its output into server/public/
+npm start         # runs the Express server
 ```
 
 Open http://localhost:3000. With no `DATABASE_URL` set, the server
@@ -138,6 +157,37 @@ Photo analysis still needs `OPENAI_API_KEY` set (see step 3) even in local
 mode — without it, that one endpoint returns a clear error instead of
 working, but everything else runs fine.
 
+If you change anything under `web/` after this, re-run `npm run build`
+(or use the two-process dev loop below) — the compiled files in
+`server/public/` do not update themselves.
+
+## Local development (hot-reloading, two processes)
+
+For actually working on the frontend, run the Express API and the Next.js
+dev server side by side, with Next proxying `/api/*` to Express so the
+browser only ever talks to one origin (required for the session cookie to
+work — see the `CORS_ORIGIN` note above):
+
+```bash
+npm install
+npm run dev
+```
+
+This runs both processes concurrently: Express on `:3001`, Next.js on
+`:3000` with hot module reloading. Open http://localhost:3000 — API
+requests are transparently proxied to `:3001`. `CORS_ORIGIN` stays unset in
+this mode too; the proxy is what keeps everything same-origin, not CORS.
+
+If you'd rather run the two processes in separate terminals (e.g. to watch
+their logs independently):
+
+```bash
+# terminal 1
+cd server && PORT=3001 npm start     # Windows PowerShell: $env:PORT=3001; npm start
+# terminal 2
+cd web && npm run dev
+```
+
 ## Local development against real Postgres
 
 If you want to develop against the same database engine you'll deploy to:
@@ -145,9 +195,10 @@ If you want to develop against the same database engine you'll deploy to:
 ```bash
 cd server
 cp .env.example .env   # fill in DATABASE_URL (Neon or any local Postgres), JWT_SECRET, OPENAI_API_KEY
+cd ..
 npm install
-npm run migrate        # optional — server.js also runs migrations on boot
-npm start               # serves http://localhost:3000
+npm --prefix server run migrate   # optional — server.js also runs migrations on boot
+npm run dev                        # or: npm run build && npm start
 ```
 
 You can point `DATABASE_URL` at the same Neon project you'll deploy with —

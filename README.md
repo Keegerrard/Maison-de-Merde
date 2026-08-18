@@ -233,18 +233,20 @@ Success is measured less by raw engagement and more by whether the product achie
 
 ## 12. Getting Started
 
-_Stack and setup instructions to be finalized as implementation begins. Planned foundation:_
+The current implementation is a two-workspace monorepo:
 
-- **Client**: cross-platform mobile (React Native or Flutter)
-- **Backend**: REST/GraphQL API service (Node.js or Python), relational database (PostgreSQL) for structured data, object storage for photos with TTL-based lifecycle rules
-- **Vision service**: separately deployable inference service (Python), decoupled from the main request path via a job queue
+- **`web/`** — Next.js 14 (App Router) + TypeScript + Tailwind CSS + Framer Motion. The public landing page, the three journal articles, and the in-app single-page application (`/app/`) all live here. Statically exported (`output: "export"`) and served by the Express process below — there is no separate frontend server or deploy target.
+- **`server/`** — Express + Postgres (Neon in production) with a local SQLite fallback for zero-setup preview, JWT session auth, and the REST API consumed by `web/`.
 
 ```bash
-# placeholder — to be replaced once the initial scaffold exists
 git clone <repo-url>
 cd maison-de-merde
-# setup instructions TBD
+npm install         # installs both workspaces
+npm run build       # compiles web/ and copies it into server/public/
+npm start           # runs the Express server at http://localhost:3000
 ```
+
+For frontend development with hot-reloading, use `npm run dev` instead of `build`/`start` — it runs the Express API and the Next.js dev server side by side. See `server/DEPLOY.md` for local setup against real Postgres and for deploying to Render + Neon.
 
 ---
 

@@ -1,0 +1,19 @@
+{
+  "name": "maison-de-merde",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "web",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"cross-env PORT=3001 npm --prefix server run start\" \"npm --prefix web run dev\"",
+    "build": "npm --prefix web run build",
+    "start": "npm --prefix server run start",
+    "sync": "node web/scripts/sync-public.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "cross-env": "^7.0.3"
+  }
+}
