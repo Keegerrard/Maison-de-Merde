@@ -7,7 +7,13 @@ services:
     # both web/ (Next.js frontend) and server/ (Express API). `npm run
     # build` compiles web/ and copies its static export into
     # server/public/, which the Express process then serves.
-    buildCommand: npm ci && npm run build
+    # --include=dev is required here: NODE_ENV=production (set below) makes
+    # plain `npm install`/`npm ci` skip devDependencies, but the Next.js
+    # build needs tailwindcss/postcss/autoprefixer/typescript to compile —
+    # those are devDependencies. Without this flag the build fails with
+    # "Cannot find module 'tailwindcss'" plus cascading module-not-found
+    # errors on unrelated pages.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
