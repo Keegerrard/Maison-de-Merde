@@ -29,7 +29,7 @@ export default function StampMark({ onDone }: { onDone?: () => void }) {
         className="inline-block rounded-pill bg-paper-raised px-3 py-1 font-mono text-eyebrow uppercase text-ink-700 ring-1 ring-rule-strong shadow-ambient"
         style={{ transform: "rotate(-8deg)" }}
       >
-        Enregistré
+        Logged
       </span>
     </motion.div>
   );

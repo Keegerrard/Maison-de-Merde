@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function PhotographsPage() {
   return (
     <ArticleLayout
-      kicker="CONFIDENTIALITÉ"
+      kicker="CONFIDENTIALITY"
       title="What happens to your photograph"
     >
       <p>
@@ -72,7 +72,7 @@ export default function PhotographsPage() {
       <Rule />
 
       <p className="font-mono text-eyebrow uppercase tracking-[0.22em] text-ink-500">
-        Ce que nous ne prétendons pas
+        What we do not claim
       </p>
       <p>
         What does reach you, above that threshold, is never final. It

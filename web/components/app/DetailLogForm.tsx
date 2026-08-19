@@ -197,7 +197,7 @@ export default function DetailLogForm({
       {error ? <p className="text-small text-claret-600">{error}</p> : null}
 
       <PressButton type="submit" disabled={submitting}>
-        {submitting ? "Enregistrement…" : "Enregistrer les détails"}
+        {submitting ? "Saving…" : "Save Details"}
       </PressButton>
     </form>
   );

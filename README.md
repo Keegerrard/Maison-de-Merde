@@ -2,6 +2,8 @@
 
 **A Longitudinal, Gamified, Computer-Vision-Assisted Framework for Personal Defecation Analytics**
 
+*Purveyors of Fine Digestive Distinction. Established 2026.*
+
 > "What gets measured gets managed." — Peter Drucker (almost certainly not talking about this)
 
 ---
@@ -179,6 +181,7 @@ Beyond the five capabilities in the original brief (tracking, streaks, competiti
 - **Doctor export** — a clean, de-identified-by-default PDF/CSV summary of trends and flagged anomalies, meant to be genuinely useful in a real medical appointment.
 - **Anomaly flags** — rule-based (not just AI-based) alerts for patterns worth medical attention (e.g., persistent Bristol Type 1/2 beyond N days, reported blood, sudden black/pale coloration), each with a plain-language "consider seeing a doctor" note — never a diagnosis.
 - **Circles (private leaderboards)** — opt-in friend groups with configurable competitive metrics (streak length, consistency %, badge count) — deliberately *not* frequency-maximizing metrics, to avoid gamifying unhealthy behavior.
+- **The Gold Circle** — a satirical premium tier (unlimited streak freezes, discreet missed-day recovery, a mark beside your name) implemented as an explicitly-labeled demo paywall: no real payment processor is wired up, and the checkout says so.
 - **Granular privacy controls** — per-field sharing settings; photos and detailed symptom data are never shared to a Circle by default, only aggregate/streak data is.
 - **Hydration & fiber reminders** — lightweight, optional nudges correlated with the user's own logged patterns.
 

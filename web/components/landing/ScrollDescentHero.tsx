@@ -29,7 +29,7 @@ function CopyBlock({
       className="relative z-20 flex max-w-[46ch] flex-col gap-6 text-left"
     >
       <span className="inline-flex w-fit items-center rounded-pill px-3 py-1 font-mono text-eyebrow uppercase text-ink-500 ring-1 ring-rule">
-        Établie 2026 · Purveyors of Fine Digestive Distinction
+        Established 2026 · Purveyors of Fine Digestive Distinction
       </span>
       <h1 className="font-display text-[clamp(1.875rem,3.4vw,3.25rem)] leading-[0.98] tracking-[-0.02em] text-ink-900">
         A complete record of the one thing{" "}
@@ -42,12 +42,12 @@ function CopyBlock({
         your doctor.
       </p>
       <div className="flex flex-wrap items-center gap-4">
-        <ArrowCTAButton href="/app/">Ouvrir le registre</ArrowCTAButton>
+        <ArrowCTAButton href="/app/">Open the Register</ArrowCTAButton>
         <a
           href="#systeme"
           className="text-small font-medium text-ink-700 underline decoration-rule-strong decoration-1 underline-offset-4 [@media(hover:hover)_and_(pointer:fine)]:hover:text-ink-900"
         >
-          Lire la méthodologie
+          Read the Methodology
         </a>
       </div>
     </motion.div>
@@ -258,8 +258,8 @@ export default function ScrollDescentHero() {
             </div>
 
             <p className="font-mono text-eyebrow uppercase text-ink-300">
-              Fig. 1 — Aperture, plan view · Specimen descending · Bristol
-              Types I–VII
+              Fig. 1. Aperture, plan view · Specimen descending · Bristol
+              Types I-VII
             </p>
 
             <BristolLegendRail activeIndex={activeIndex} />

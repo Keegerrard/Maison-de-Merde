@@ -72,10 +72,10 @@ export default function ConsistencyHeatmap() {
     <DoubleBezelCard className="h-full" coreClassName="flex h-full flex-col gap-5">
       <div>
         <p className="font-mono text-eyebrow uppercase text-ink-500">
-          Régularité
+          Consistency
         </p>
         <h3 className="mt-1 font-display text-title text-ink-900">
-          Les 91 derniers jours.
+          The last 91 days.
         </h3>
       </div>
 

@@ -16,10 +16,10 @@ export default function BristolDistribution() {
   return (
     <DoubleBezelCard>
       <p className="font-mono text-eyebrow uppercase text-ink-500">
-        Échelle de Bristol
+        Bristol Scale
       </p>
       <h3 className="mb-6 mt-1 font-display text-title text-ink-900">
-        Répartition des types.
+        Type distribution.
       </h3>
 
       <div className="flex flex-col gap-2.5">
@@ -67,7 +67,7 @@ export default function BristolDistribution() {
               </div>
               {i === 3 ? (
                 <p className="mb-1 mt-1 pl-9 font-mono text-[0.625rem] uppercase tracking-[0.16em] text-sage-600">
-                  Types 3–4 — plage typique
+                  Types 3–4 — typical range
                 </p>
               ) : null}
             </div>

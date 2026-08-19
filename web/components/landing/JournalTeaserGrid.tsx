@@ -9,21 +9,21 @@ import JournalCard from "./JournalCard";
 const ARTICLES = [
   {
     href: "/journal/streak-engine/",
-    kicker: "MÉTHODOLOGIE",
+    kicker: "METHODOLOGY",
     title: "How the streak actually works",
     standfirst:
       "Grace tokens, freezes, and why a missed Tuesday is not a moral failure.",
   },
   {
     href: "/journal/bristol-scale/",
-    kicker: "TAXONOMIE",
+    kicker: "TAXONOMY",
     title: "Why we did not invent our own scale",
     standfirst:
       "A clinically validated seven-point taxonomy already exists. Using it was the entire decision.",
   },
   {
     href: "/journal/photographs/",
-    kicker: "CONFIDENTIALITÉ",
+    kicker: "CONFIDENTIALITY",
     title: "What happens to your photograph",
     standfirst:
       "It goes to a model once, the model answers, and then it is gone. Unless you say otherwise.",
@@ -36,7 +36,7 @@ export default function JournalTeaserGrid() {
       id="journal"
       rail={
         <SectionHeading
-          eyebrow="LE JOURNAL"
+          eyebrow="THE JOURNAL"
           title="Three things worth reading before you start."
         />
       }

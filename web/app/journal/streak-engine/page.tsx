@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function StreakEnginePage() {
   return (
-    <ArticleLayout kicker="MÉTHODOLOGIE" title="How the streak actually works">
+    <ArticleLayout kicker="METHODOLOGY" title="How the streak actually works">
       <p>
         A streak is not a mood. It is a small, exact piece of arithmetic that
         runs once a day: did this account log at least one session today? If

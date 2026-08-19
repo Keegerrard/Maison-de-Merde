@@ -15,9 +15,9 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Maison de Merde — Purveyors of Fine Digestive Distinction",
+  title: "Maison de Merde. Purveyors of Fine Digestive Distinction",
   description:
-    "A complete record of the one thing you have never written down. Bristol Stool Scale logging, a streak engine, private circles, and a doctor export — établie 2026.",
+    "A complete record of the one thing you have never written down. Bristol Stool Scale logging, a streak engine, private circles, and a doctor export. Established 2026.",
   openGraph: {
     title: "Maison de Merde",
     description:
@@ -38,6 +38,7 @@ export default function RootLayout({
     >
       <head>
         <meta name="color-scheme" content="light" />
+        <meta name="google" content="notranslate" />
       </head>
       <body>
         <ToastProvider>{children}</ToastProvider>

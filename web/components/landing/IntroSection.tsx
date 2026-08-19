@@ -9,7 +9,7 @@ export default function IntroSection() {
     <EditorialSplit
       rail={
         <div className="flex flex-col gap-4">
-          <EyebrowTag>UNE INTRODUCTION</EyebrowTag>
+          <EyebrowTag>AN INTRODUCTION</EyebrowTag>
           <h2 className="font-display text-display text-ink-900">
             We are entirely serious about this.
           </h2>
@@ -24,9 +24,9 @@ export default function IntroSection() {
           which is a reliable recipe for an information vacuum.
         </p>
         <p className="max-w-[52ch] text-body text-ink-700">
-          Everything else here &mdash; the streaks, the ranks, the medals,
-          the discreet talk of a Gold Circle &mdash; exists to solve one
-          problem: a record with gaps in it is not a record. Maison de Merde
+          Everything else here (the streaks, the ranks, the medals, the
+          discreet talk of a Gold Circle) exists to solve one problem: a
+          record with gaps in it is not a record. Maison de Merde
           is a tracking and pattern-recognition instrument. It is not a
           medical device, it does not diagnose anything, and it will tell
           you so until you are bored of hearing it.

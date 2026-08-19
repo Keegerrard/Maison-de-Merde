@@ -97,7 +97,7 @@ export default function AuthPanel({
             Maison de Merde
           </span>
           <span className="inline-flex w-fit items-center rounded-pill px-3 py-1 font-mono text-eyebrow uppercase text-ink-500 ring-1 ring-rule">
-            Établie 2026 · Purveyors of Fine Digestive Distinction
+            Established 2026 · Purveyors of Fine Digestive Distinction
           </span>
           <h1 className="font-display text-display text-ink-900">
             The ledger is open.
@@ -132,7 +132,7 @@ export default function AuthPanel({
                     tab === t ? "text-ink-900" : "text-ink-500",
                   ].join(" ")}
                 >
-                  {t === "login" ? "Se connecter" : "Créer un compte"}
+                  {t === "login" ? "Log In" : "Create Account"}
                 </span>
               </button>
             ))}
@@ -150,14 +150,14 @@ export default function AuthPanel({
                 className="flex flex-col gap-4"
               >
                 <TextInput
-                  label="Nom d'utilisateur ou email"
+                  label="Username or Email"
                   value={loginUsername}
                   onChange={(e) => setLoginUsername(e.target.value)}
                   required
                   autoComplete="username"
                 />
                 <TextInput
-                  label="Mot de passe"
+                  label="Password"
                   type="password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
@@ -169,7 +169,7 @@ export default function AuthPanel({
                   {submitting ? (
                     <Icon name="Loader2" size={16} className="animate-spin" />
                   ) : null}
-                  Se connecter
+                  Log In
                 </PressButton>
               </motion.form>
             ) : (
@@ -183,7 +183,7 @@ export default function AuthPanel({
                 className="flex flex-col gap-4"
               >
                 <TextInput
-                  label="Nom d'utilisateur"
+                  label="Username"
                   value={signupUsername}
                   onChange={(e) => setSignupUsername(e.target.value)}
                   error={fieldErrors.username}
@@ -202,7 +202,7 @@ export default function AuthPanel({
                   autoComplete="email"
                 />
                 <TextInput
-                  label="Mot de passe"
+                  label="Password"
                   type="password"
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
@@ -216,7 +216,7 @@ export default function AuthPanel({
                   {submitting ? (
                     <Icon name="Loader2" size={16} className="animate-spin" />
                   ) : null}
-                  Créer un compte
+                  Create Account
                 </PressButton>
               </motion.form>
             )}

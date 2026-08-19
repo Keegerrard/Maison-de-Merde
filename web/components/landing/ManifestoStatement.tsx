@@ -42,8 +42,8 @@ export default function ManifestoStatement() {
 
       <p className="max-w-[52ch] text-lede text-ink-500">
         Photographs are deleted the moment the model has finished looking at
-        them. Health data is never sold &mdash; not as a policy that could be
-        revised, as a constraint the product is built around. Everything we
+        them. Health data is never sold: not as a policy that could be
+        revised, but as a constraint the product is built around. Everything we
         hold can be exported or destroyed on your instruction. The medals and
         the leaderboard are entertainment, and we would like you to enjoy
         them.

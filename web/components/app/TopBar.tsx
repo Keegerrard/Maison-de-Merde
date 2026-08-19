@@ -23,11 +23,11 @@ export default function TopBar({
             Maison de Merde
           </span>
           <span className="hidden font-mono text-eyebrow uppercase text-ink-300 md:inline">
-            Établie 2026
+            Established 2026
           </span>
           {isPremium ? (
             <span className="hidden rounded-pill bg-ink-900 px-2.5 py-0.5 font-mono text-eyebrow uppercase text-paper md:inline-flex">
-              Membre
+              Member
             </span>
           ) : null}
         </div>
@@ -42,7 +42,7 @@ export default function TopBar({
             className="hidden items-center gap-1.5 rounded-pill px-3 py-2 text-small text-ink-500 ring-1 ring-rule [@media(hover:hover)_and_(pointer:fine)]:hover:text-ink-900 md:inline-flex"
           >
             <Icon name="X" size={14} />
-            Se déconnecter
+            Log Out
           </button>
         </div>
       </div>

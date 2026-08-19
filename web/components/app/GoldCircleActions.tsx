@@ -37,7 +37,7 @@ export default function GoldCircleActions() {
     <>
       <div className="rounded-shell bg-paper-sunk p-5 ring-1 ring-rule md:p-6">
         <p className="mb-4 font-mono text-eyebrow uppercase text-ink-300">
-          Réservé aux membres du Cercle d&apos;Or
+          Reserved for Gold Circle members
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <PressButton
@@ -49,7 +49,7 @@ export default function GoldCircleActions() {
             <span className="flex w-full items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Icon name="Lock" size={16} strokeWidth={1.25} />
-                Geler la série
+                Freeze the Streak
               </span>
               <span className={GOLD_TAG}>Gold</span>
             </span>
@@ -63,7 +63,7 @@ export default function GoldCircleActions() {
             <span className="flex w-full items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Icon name="Lock" size={16} strokeWidth={1.25} />
-                Récupérer un jour manqué
+                Recover a Missed Day
               </span>
               <span className={GOLD_TAG}>Gold</span>
             </span>

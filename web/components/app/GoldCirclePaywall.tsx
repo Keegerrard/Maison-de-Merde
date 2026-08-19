@@ -71,7 +71,7 @@ export default function GoldCirclePaywall({
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="Le Cercle d'Or">
+    <Modal open={open} onClose={handleClose} title="The Gold Circle">
       <div className="relative">
         <button
           type="button"
@@ -87,7 +87,7 @@ export default function GoldCirclePaywall({
         </div>
 
         <h2 className="text-center font-display text-title text-ink-900">
-          Le Cercle d&apos;Or
+          The Gold Circle
         </h2>
         <p className="mt-2 text-center text-small text-ink-500">{reason}</p>
 
@@ -109,7 +109,7 @@ export default function GoldCirclePaywall({
               <span className="relative z-10 flex flex-col items-center">
                 {t === "annual" ? (
                   <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-sage-600">
-                    Meilleure valeur
+                    Best value
                   </span>
                 ) : (
                   <span className="h-[13px]" />
@@ -117,7 +117,7 @@ export default function GoldCirclePaywall({
                 <span
                   className={tier === t ? "text-ink-900" : "text-ink-500"}
                 >
-                  {t === "monthly" ? "Mensuel" : "Annuel"} {TIER_PRICE[t]}
+                  {t === "monthly" ? "Monthly" : "Annual"} {TIER_PRICE[t]}
                 </span>
               </span>
             </button>
@@ -187,8 +187,8 @@ export default function GoldCirclePaywall({
                 transition={{ duration: 0.2 }}
               >
                 {phase === "success"
-                  ? "Bienvenue au Cercle d'Or"
-                  : `Rejoindre le Cercle d'Or — ${TIER_PRICE[tier]}`}
+                  ? "Welcome to the Gold Circle"
+                  : `Join the Gold Circle — ${TIER_PRICE[tier]}`}
               </motion.span>
             </span>
           </PressButton>

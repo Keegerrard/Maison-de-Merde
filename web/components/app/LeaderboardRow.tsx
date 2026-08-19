@@ -53,11 +53,11 @@ export default function LeaderboardRow({
         <p className="truncate text-small font-medium text-ink-900">
           {entry.username}
           {entry.isMe ? (
-            <span className="ml-1 font-mono text-ink-500">(vous)</span>
+            <span className="ml-1 font-mono text-ink-500">(you)</span>
           ) : null}
         </p>
         <p className="mt-0.5 font-mono text-small text-ink-500">
-          {entry.streak}j · {formatPercent(entry.consistency)} de régularité
+          {entry.streak}d · {formatPercent(entry.consistency)} consistency
         </p>
         <div className="mt-2 h-px w-full bg-rule">
           <motion.div

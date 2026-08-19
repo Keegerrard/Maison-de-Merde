@@ -14,27 +14,27 @@ interface FooterColumn {
 
 const COLUMNS: FooterColumn[] = [
   {
-    heading: "LE SYSTÈME",
+    heading: "THE SYSTEM",
     links: [
-      { label: "Les Services", href: "/#systeme" },
-      { label: "Les Quatre Systèmes", href: "/#systeme" },
-      { label: "Le Cercle", href: "/#cercle" },
+      { label: "The Services", href: "/#systeme" },
+      { label: "The Four Systems", href: "/#systeme" },
+      { label: "The Circle", href: "/#cercle" },
     ],
   },
   {
-    heading: "LE JOURNAL",
+    heading: "THE JOURNAL",
     links: [
-      { label: "Comment fonctionne la série", href: "/journal/streak-engine/" },
-      { label: "L'échelle de Bristol", href: "/journal/bristol-scale/" },
-      { label: "Vos photographies", href: "/journal/photographs/" },
+      { label: "How the streak works", href: "/journal/streak-engine/" },
+      { label: "The Bristol Scale", href: "/journal/bristol-scale/" },
+      { label: "Your photographs", href: "/journal/photographs/" },
     ],
   },
   {
-    heading: "LA MAISON",
+    heading: "THE HOUSE",
     links: [
-      { label: "Entrer", href: "/app/" },
-      { label: "Méthodologie", href: "/journal/bristol-scale/" },
-      { label: "Confidentialité", href: "/journal/photographs/" },
+      { label: "Enter", href: "/app/" },
+      { label: "Methodology", href: "/journal/bristol-scale/" },
+      { label: "Privacy", href: "/journal/photographs/" },
     ],
   },
 ];
@@ -77,8 +77,8 @@ export default function FooterWordmark({
 
         <p className="max-w-[62ch] py-8 font-mono text-eyebrow uppercase text-ink-300">
           MAISON DE MERDE IS A TRACKING AND PATTERN-RECOGNITION TOOL. IT IS
-          NOT A MEDICAL DEVICE AND DOES NOT DIAGNOSE ANY CONDITION. ·
-          ÉTABLIE 2026 · PURVEYORS OF FINE DIGESTIVE DISTINCTION
+          NOT A MEDICAL DEVICE AND DOES NOT DIAGNOSE ANY CONDITION.
+          ESTABLISHED 2026 · PURVEYORS OF FINE DIGESTIVE DISTINCTION
         </p>
       </div>
 

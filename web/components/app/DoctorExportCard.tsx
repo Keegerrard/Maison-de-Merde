@@ -18,7 +18,7 @@ export default function DoctorExportCard() {
         download
         className="mt-6"
       >
-        Exporter le résumé (.txt)
+        Export the Summary (.txt)
       </ArrowCTAButton>
       <p className="mt-4 font-mono text-small text-ink-300">
         Written to be handed over, not to be admired.
