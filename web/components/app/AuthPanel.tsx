@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import DoubleBezelCard from "../ui/DoubleBezelCard";
 import TextInput from "../ui/TextInput";
 import PressButton from "../ui/PressButton";
+import Checkbox from "../ui/Checkbox";
 import Icon from "../ui/Icon";
 import { ApiError } from "@/lib/api";
 import type { AuthUser } from "@/lib/types";
 import { SPRING } from "@/lib/motion";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,24}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,7 +23,11 @@ export default function AuthPanel({
   initialTab = "login",
   initialUsername = "",
 }: {
-  onLogin: (body: { username: string; password: string }) => Promise<AuthUser>;
+  onLogin: (body: {
+    username: string;
+    password: string;
+    remember?: boolean;
+  }) => Promise<AuthUser>;
   onSignup: (body: {
     username: string;
     email: string;
@@ -30,12 +36,14 @@ export default function AuthPanel({
   initialTab?: Tab;
   initialUsername?: string;
 }) {
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>(initialTab);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
 
   const [signupUsername, setSignupUsername] = useState(initialUsername);
   const [signupEmail, setSignupEmail] = useState("");
@@ -47,7 +55,11 @@ export default function AuthPanel({
     setServerError(null);
     setSubmitting(true);
     try {
-      await onLogin({ username: loginUsername, password: loginPassword });
+      await onLogin({
+        username: loginUsername,
+        password: loginPassword,
+        remember: rememberMe,
+      });
     } catch (err) {
       setServerError(
         err instanceof ApiError ? err.message : "Failed to log in."
@@ -94,32 +106,31 @@ export default function AuthPanel({
       <div className="flex flex-col justify-between gap-8 px-6 py-10 md:col-span-6 md:px-16 md:py-16">
         <div className="flex flex-col gap-6">
           <span className="font-display text-title text-ink-900">
-            Maison de Merde
+            {t("app.name")}
           </span>
           <span className="inline-flex w-fit items-center rounded-pill px-3 py-1 font-mono text-eyebrow uppercase text-ink-500 ring-1 ring-rule">
-            Established 2026 · Purveyors of Fine Digestive Distinction
+            {t("app.established")} · {t("app.tagline")}
           </span>
           <h1 className="font-display text-display text-ink-900">
-            The ledger is open.
+            {t("auth.ledgerOpen")}
           </h1>
         </div>
         <p className="font-mono text-eyebrow uppercase text-ink-300">
-          Maison de Merde is a tracking and pattern-recognition tool. It is
-          not a medical device and does not diagnose any condition.
+          {t("auth.disclaimer")}
         </p>
       </div>
 
       <div className="flex items-center px-6 pb-16 md:col-span-6 md:px-16 md:pb-0">
         <DoubleBezelCard className="w-full max-w-[440px]">
           <div className="relative mb-6 flex rounded-pill bg-paper-sunk p-1">
-            {(["login", "signup"] as Tab[]).map((t) => (
+            {(["login", "signup"] as Tab[]).map((tabOption) => (
               <button
-                key={t}
+                key={tabOption}
                 type="button"
-                onClick={() => setTab(t)}
+                onClick={() => setTab(tabOption)}
                 className="relative flex-1 rounded-pill py-2 text-small font-medium"
               >
-                {tab === t ? (
+                {tab === tabOption ? (
                   <motion.span
                     layoutId="auth-tab"
                     className="absolute inset-0 rounded-pill bg-paper-raised shadow-ambient"
@@ -129,10 +140,10 @@ export default function AuthPanel({
                 <span
                   className={[
                     "relative z-10",
-                    tab === t ? "text-ink-900" : "text-ink-500",
+                    tab === tabOption ? "text-ink-900" : "text-ink-500",
                   ].join(" ")}
                 >
-                  {t === "login" ? "Log In" : "Create Account"}
+                  {tabOption === "login" ? t("auth.login") : t("auth.signup")}
                 </span>
               </button>
             ))}
@@ -150,26 +161,31 @@ export default function AuthPanel({
                 className="flex flex-col gap-4"
               >
                 <TextInput
-                  label="Username or Email"
+                  label={t("auth.usernameOrEmail")}
                   value={loginUsername}
                   onChange={(e) => setLoginUsername(e.target.value)}
                   required
                   autoComplete="username"
                 />
                 <TextInput
-                  label="Password"
+                  label={t("auth.password")}
                   type="password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
                   autoComplete="current-password"
                 />
+                <Checkbox
+                  label={t("auth.remember")}
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 {serverError ? <ErrorStrip message={serverError} /> : null}
                 <PressButton type="submit" fullWidth disabled={submitting}>
                   {submitting ? (
                     <Icon name="Loader2" size={16} className="animate-spin" />
                   ) : null}
-                  Log In
+                  {t("auth.login")}
                 </PressButton>
               </motion.form>
             ) : (
@@ -183,7 +199,7 @@ export default function AuthPanel({
                 className="flex flex-col gap-4"
               >
                 <TextInput
-                  label="Username"
+                  label={t("auth.username")}
                   value={signupUsername}
                   onChange={(e) => setSignupUsername(e.target.value)}
                   error={fieldErrors.username}
@@ -193,7 +209,7 @@ export default function AuthPanel({
                   autoComplete="username"
                 />
                 <TextInput
-                  label="Email"
+                  label={t("auth.email")}
                   type="email"
                   value={signupEmail}
                   onChange={(e) => setSignupEmail(e.target.value)}
@@ -202,7 +218,7 @@ export default function AuthPanel({
                   autoComplete="email"
                 />
                 <TextInput
-                  label="Password"
+                  label={t("auth.password")}
                   type="password"
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
@@ -216,7 +232,7 @@ export default function AuthPanel({
                   {submitting ? (
                     <Icon name="Loader2" size={16} className="animate-spin" />
                   ) : null}
-                  Create Account
+                  {t("auth.signup")}
                 </PressButton>
               </motion.form>
             )}

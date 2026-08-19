@@ -76,6 +76,23 @@ body {
   color: var(--ink-900);
 }
 
+/* Profile "flex card" printing: everything in the document is hidden
+   except the dedicated #print-card-root portal, which ProfileModal renders
+   the printable card into. Scoped this way (rather than print:hidden on
+   every existing component) so nothing outside ProfileModal has to know
+   printing exists. */
+@media print {
+  body > *:not(#print-card-root) {
+    display: none !important;
+  }
+  #print-card-root {
+    display: block !important;
+  }
+}
+#print-card-root {
+  display: none;
+}
+
 .tabular {
   font-variant-numeric: tabular-nums;
 }

@@ -16,6 +16,7 @@ const circleRoutes = require("./src/routes/circle");
 const visionRoutes = require("./src/routes/vision");
 const chatRoutes = require("./src/routes/chat");
 const notificationsRoutes = require("./src/routes/notifications");
+const profileRoutes = require("./src/routes/profile");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,6 +35,7 @@ app.use("/api/circle", circleRoutes);
 app.use("/api/vision", visionRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/notifications", notificationsRoutes);
+app.use("/api/profile", profileRoutes);
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 

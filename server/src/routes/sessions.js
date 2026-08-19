@@ -110,16 +110,23 @@ router.get("/shared", async (req, res) => {
     const result = await query(
       `SELECT s.id, s.occurred_at, s.bristol_type, s.color, s.odor, s.pain, s.visible_food, s.blood_flag,
               s.symptoms, s.notes, s.ai_suggested, s.ai_confidence, s.photo_kept,
-              u.username AS shared_by_username, sh.created_at AS shared_at
+              u.username AS shared_by_username, sh.created_at AS shared_at,
+              sn.caption AS caption, sn.include_photo AS include_photo
        FROM shared_sessions sh
        JOIN sessions_log s ON s.id = sh.session_id
        JOIN users u ON u.id = sh.shared_by
+       LEFT JOIN share_notes sn ON sn.shared_session_id = sh.id
        WHERE sh.shared_with = $1
        ORDER BY sh.created_at DESC
        LIMIT 50`,
       [req.userId]
     );
-    res.json({ sessions: result.rows.map(parseSessionRow) });
+    const sessions = result.rows.map((s) => {
+      const row = parseSessionRow(s);
+      if (!s.include_photo) row.photo_kept = null;
+      return row;
+    });
+    res.json({ sessions });
   } catch (e) {
     console.error("shared sessions error", e);
     res.status(500).json({ error: "Failed to load shared sessions." });
@@ -127,7 +134,9 @@ router.get("/shared", async (req, res) => {
 });
 
 // GET /api/sessions/:id — full detail. Visible to the owner, or to anyone
-// it's been explicitly shared with (see shared_sessions).
+// it's been explicitly shared with (see shared_sessions). A shared view only
+// includes the photo if the sharer opted `includePhoto` in for that specific
+// share — the recipient never automatically sees more than was chosen.
 router.get("/:id", async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid session id." });
@@ -142,31 +151,50 @@ router.get("/:id", async (req, res) => {
     const session = result.rows[0];
     if (!session) return res.status(404).json({ error: "Session not found." });
 
+    let caption = null;
+    let sharedByUsername = null;
     if (session.user_id !== req.userId) {
       const shareCheck = await query(
-        "SELECT id FROM shared_sessions WHERE session_id = $1 AND shared_with = $2",
+        `SELECT sh.id AS share_id, sn.caption AS caption, sn.include_photo AS include_photo, u.username AS shared_by_username
+         FROM shared_sessions sh
+         LEFT JOIN share_notes sn ON sn.shared_session_id = sh.id
+         JOIN users u ON u.id = sh.shared_by
+         WHERE sh.session_id = $1 AND sh.shared_with = $2`,
         [id, req.userId]
       );
-      if (!shareCheck.rows.length) return res.status(403).json({ error: "This session hasn't been shared with you." });
+      const share = shareCheck.rows[0];
+      if (!share) return res.status(403).json({ error: "This session hasn't been shared with you." });
+      caption = share.caption || null;
+      sharedByUsername = share.shared_by_username;
+      if (!share.include_photo) session.photo_kept = null;
     }
 
-    res.json({ session: parseSessionRow(session), isOwner: session.user_id === req.userId });
+    res.json({
+      session: parseSessionRow(session),
+      isOwner: session.user_id === req.userId,
+      caption,
+      sharedByUsername,
+    });
   } catch (e) {
     console.error("get session error", e);
     res.status(500).json({ error: "Failed to load session." });
   }
 });
 
-// POST /api/sessions/:id/share { username } — share a session with a
-// confirmed friend. Explicit and per-session, not a Circle-wide default.
+// POST /api/sessions/:id/share { username, caption?, includePhoto? } —
+// share a session with a confirmed friend. Explicit and per-session, not a
+// Circle-wide default. includePhoto only has any effect if the session
+// actually has a kept photo; otherwise it's silently ignored.
 router.post("/:id/share", async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const username = (req.body?.username || "").trim();
+  const caption = typeof req.body?.caption === "string" ? req.body.caption.trim().slice(0, 500) : "";
+  const includePhoto = !!req.body?.includePhoto;
   if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid session id." });
   if (!username) return res.status(400).json({ error: "username is required." });
 
   try {
-    const sessionRes = await query("SELECT id, user_id FROM sessions_log WHERE id = $1", [id]);
+    const sessionRes = await query("SELECT id, user_id, photo_kept FROM sessions_log WHERE id = $1", [id]);
     const session = sessionRes.rows[0];
     if (!session) return res.status(404).json({ error: "Session not found." });
     if (session.user_id !== req.userId) return res.status(403).json({ error: "You can only share your own sessions." });
@@ -186,6 +214,20 @@ router.post("/:id/share", async (req, res) => {
       `INSERT INTO shared_sessions (session_id, shared_by, shared_with) VALUES ($1, $2, $3)
        ON CONFLICT (session_id, shared_with) DO NOTHING`,
       [id, req.userId, target.id]
+    );
+    const shareRow = await query(
+      "SELECT id FROM shared_sessions WHERE session_id = $1 AND shared_with = $2",
+      [id, target.id]
+    );
+    const shareId = shareRow.rows[0].id;
+
+    // Delete + re-insert rather than upsert — keeps this portable across the
+    // Postgres/SQLite drivers without relying on ON CONFLICT DO UPDATE
+    // support, same reasoning as the rest of this codebase's DB layer.
+    await query("DELETE FROM share_notes WHERE shared_session_id = $1", [shareId]);
+    await query(
+      "INSERT INTO share_notes (shared_session_id, caption, include_photo) VALUES ($1, $2, $3)",
+      [shareId, caption || null, includePhoto && !!session.photo_kept]
     );
 
     const meRes = await query("SELECT username FROM users WHERE id = $1", [req.userId]);

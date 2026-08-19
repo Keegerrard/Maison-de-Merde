@@ -17,6 +17,7 @@ export interface SignupBody {
 export interface LoginBody {
   username: string;
   password: string;
+  remember?: boolean;
 }
 
 // ---- Sessions --------------------------------------------------------------
@@ -142,6 +143,132 @@ export interface VisionResultResponse {
 }
 
 export type VisionResponse = VisionWithheldResponse | VisionResultResponse;
+
+// ---- Session detail / sharing ----------------------------------------------
+
+export interface SessionDetail {
+  id: number;
+  user_id: number;
+  occurred_at: string;
+  bristol_type: number | null;
+  color: ColorValue | null;
+  odor: OdorValue | null;
+  pain: PainValue | null;
+  visibleFood: boolean;
+  bloodFlag: boolean;
+  symptoms: string[];
+  notes: string | null;
+  aiSuggested: boolean;
+  ai_confidence: number | null;
+  photo_kept: string | null;
+}
+
+export interface SessionDetailResponse {
+  session: SessionDetail;
+  isOwner: boolean;
+  caption: string | null;
+  sharedByUsername?: string | null;
+}
+
+export interface SharedSessionRow extends SessionDetail {
+  shared_by_username: string;
+  shared_at: string;
+  caption?: string | null;
+}
+
+export interface SharedSessionsResponse {
+  sessions: SharedSessionRow[];
+}
+
+export interface ShareSessionBody {
+  username: string;
+  caption?: string;
+  includePhoto?: boolean;
+}
+
+// ---- Chat --------------------------------------------------------------------
+
+export interface ChatMessage {
+  id: number;
+  sender_id: number;
+  recipient_id: number;
+  body: string;
+  created_at: string;
+  isMine: boolean;
+}
+
+export interface ChatThreadResponse {
+  username: string;
+  messages: ChatMessage[];
+}
+
+// ---- Notifications -------------------------------------------------------------
+
+export type NotificationType =
+  | "friend_request"
+  | "friend_accept"
+  | "message"
+  | "session_shared";
+
+export interface NotificationItem {
+  id: number;
+  type: NotificationType;
+  payload: Record<string, unknown>;
+  created_at: string;
+  read: boolean;
+}
+
+export interface NotificationsResponse {
+  notifications: NotificationItem[];
+  unreadCount: number;
+}
+
+// ---- Profile -------------------------------------------------------------------
+
+export type BannerId = "sage" | "claret" | "ink" | "gold" | "rose" | "slate";
+
+export interface ProfileBadge {
+  id: string;
+  icon: string;
+  name: string;
+  desc: string;
+}
+
+export interface ProfileStats {
+  totalSessions: number;
+  currentStreak: number;
+  longestStreak: number;
+  badgesUnlocked: number;
+  badgesTotal: number;
+}
+
+export interface MyProfileResponse {
+  username: string;
+  nickname: string | null;
+  banner: BannerId;
+  traitBadgeId: string | null;
+  trait: ProfileBadge | null;
+  isPublic: boolean;
+  joinedAt: string;
+  stats: ProfileStats;
+  unlockedBadges: ProfileBadge[];
+}
+
+export interface ProfileUpdateBody {
+  nickname?: string;
+  banner?: BannerId;
+  traitBadgeId?: string | null;
+  isPublic?: boolean;
+}
+
+export interface PublicProfileResponse {
+  username: string;
+  nickname: string | null;
+  banner: BannerId;
+  trait: ProfileBadge | null;
+  joinedAt: string;
+  stats: ProfileStats;
+}
 
 // ---- Errors ------------------------------------------------------------------
 

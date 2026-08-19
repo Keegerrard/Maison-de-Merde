@@ -6,6 +6,7 @@ import SkeletonRow from "../ui/SkeletonRow";
 import EmptyState from "../ui/EmptyState";
 import SessionRow from "./SessionRow";
 import StampMark from "./StampMark";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { SessionRow as SessionRowType } from "@/lib/types";
 
 export interface LogStamp {
@@ -17,11 +18,14 @@ export default function SessionList({
   sessions,
   loading,
   stamp,
+  onSelect,
 }: {
   sessions: SessionRowType[];
   loading: boolean;
   stamp?: LogStamp | null;
+  onSelect?: (id: number) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <DoubleBezelCard padding="none">
       <div className="divide-y divide-rule">
@@ -33,7 +37,7 @@ export default function SessionList({
           </div>
         ) : sessions.length === 0 ? (
           <EmptyState
-            message="Nothing recorded yet. The first entry is the hard one."
+            message={t("session.emptyList")}
             className="px-6"
           />
         ) : (
@@ -45,7 +49,7 @@ export default function SessionList({
               transition={{ duration: 0.3, delay: Math.min(i, 5) * 0.06 }}
               className="relative"
             >
-              <SessionRow session={session} />
+              <SessionRow session={session} onClick={onSelect ? () => onSelect(session.id) : undefined} />
               {i === 0 && stamp ? (
                 <AnimatePresence>
                   <StampMark key={stamp.key} onDone={stamp.onDone} />

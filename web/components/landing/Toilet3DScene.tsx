@@ -5,7 +5,11 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { MotionValue } from "framer-motion";
 import { BRISTOL_HEX, MORPH_STOPS } from "@/lib/bristol";
-import { buildSpecimenGeometry, piecewiseLerp } from "@/lib/specimenGeometry";
+import {
+  buildSpecimenGeometry,
+  continuousBristolIndex,
+  piecewiseLerp,
+} from "@/lib/specimenGeometry";
 
 const MORPH_STOPS_ARR = [...MORPH_STOPS];
 const BRISTOL_COLORS = BRISTOL_HEX.map((hex) => new THREE.Color(hex));
@@ -74,11 +78,7 @@ function SceneContent({ progress }: { progress: MotionValue<number> }) {
         (1 - THREE.MathUtils.smoothstep(p, 0.9, 0.96));
       specimenRef.current.scale.setScalar(0.001 + appear * 1);
 
-      const continuous = piecewiseLerp(
-        p,
-        MORPH_STOPS_ARR,
-        MORPH_STOPS_ARR.map((_, i) => i)
-      );
+      const continuous = continuousBristolIndex(p, MORPH_STOPS_ARR);
       const lower = Math.max(0, Math.min(6, Math.floor(continuous)));
       const upper = Math.min(6, lower + 1);
       const frac = continuous - lower;
@@ -86,8 +86,22 @@ function SceneContent({ progress }: { progress: MotionValue<number> }) {
       const influences = specimenRef.current.morphTargetInfluences;
       if (influences) {
         influences.fill(0);
-        influences[lower] = 1 - frac;
-        influences[upper] = frac;
+        // At the very end of the morph range (continuous === 6, i.e. p >=
+        // the last MORPH_STOPS stop), piecewiseLerp clamps lower === upper
+        // === 6 with frac === 0. Writing both influences[lower] = 1 - frac
+        // and then influences[upper] = frac hits the SAME index twice — the
+        // second write (frac = 0) silently overwrote the first, zeroing out
+        // every influence and making the mesh fall back to its rest shape
+        // (Type 1, "separate hard lumps") instead of staying on Type 7
+        // ("entirely liquid"). That produced a visible shape snap right
+        // before the specimen shrinks/descends out of view. Guard the
+        // collision explicitly instead of relying on write order.
+        if (lower === upper) {
+          influences[lower] = 1;
+        } else {
+          influences[lower] = 1 - frac;
+          influences[upper] = frac;
+        }
       }
 
       const material = specimenRef.current.material as THREE.MeshStandardMaterial;

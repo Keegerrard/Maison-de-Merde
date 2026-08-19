@@ -15,6 +15,10 @@ import CirclePanel from "./CirclePanel";
 import AchievementsPanel from "./AchievementsPanel";
 import GoldCirclePaywall from "./GoldCirclePaywall";
 import CelebrationModal from "./CelebrationModal";
+import SessionDetailModal from "./SessionDetailModal";
+import ShareSessionModal from "./ShareSessionModal";
+import ChatModal from "./ChatModal";
+import ProfileModal from "./ProfileModal";
 import SkeletonBlock from "../ui/SkeletonBlock";
 import type { TabId } from "./TabRail";
 
@@ -149,6 +153,26 @@ export default function AppShell() {
     setCelebrationQueue((prev) => prev.slice(1));
   }
 
+  // ---- Session detail / share / chat / profile overlays ----
+  const [detailSessionId, setDetailSessionId] = useState<number | null>(null);
+  const [shareSessionId, setShareSessionId] = useState<number | null>(null);
+  const [chatWith, setChatWith] = useState<string | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  function handleOpenSession(id: number) {
+    setDetailSessionId(id);
+  }
+  function handleShareFromDetail(id: number) {
+    setDetailSessionId(null);
+    setShareSessionId(id);
+  }
+  function handleOpenChat(username: string) {
+    setChatWith(username);
+  }
+  function handleOpenCircleFromNotification() {
+    setTab("circle");
+  }
+
   if (status === "checking") {
     return showSkeleton ? (
       <div className="grid min-h-[100dvh] place-items-center">
@@ -177,13 +201,21 @@ export default function AppShell() {
             onChangeTab={setTab}
             onLogout={logout}
             isPremium={isPremium}
+            onOpenProfile={() => setProfileOpen(true)}
+            onOpenChat={handleOpenChat}
+            onOpenCircle={handleOpenCircleFromNotification}
           />
           <main className="mx-auto w-full max-w-[1180px] px-5 py-8 md:px-10 md:py-12">
             {tab === "log" ? (
-              <LogPanel onNewlyUnlocked={enqueueCelebrations} />
+              <LogPanel
+                onNewlyUnlocked={enqueueCelebrations}
+                onOpenSession={handleOpenSession}
+              />
             ) : null}
             {tab === "dashboard" ? <DashboardPanel /> : null}
-            {tab === "circle" ? <CirclePanel /> : null}
+            {tab === "circle" ? (
+              <CirclePanel onOpenChat={handleOpenChat} onOpenSession={handleOpenSession} />
+            ) : null}
             {tab === "achievements" ? <AchievementsPanel /> : null}
           </main>
         </div>
@@ -198,6 +230,18 @@ export default function AppShell() {
           badge={celebrationQueue[0] ?? null}
           onDismiss={dismissCelebration}
         />
+        <SessionDetailModal
+          sessionId={detailSessionId}
+          onClose={() => setDetailSessionId(null)}
+          onShare={handleShareFromDetail}
+        />
+        <ShareSessionModal
+          sessionId={shareSessionId}
+          onClose={() => setShareSessionId(null)}
+        />
+        <ChatModal username={chatWith} onClose={() => setChatWith(null)} />
+        <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+        <div id="print-card-root" />
       </PremiumContext.Provider>
     </DashboardContext.Provider>
   );

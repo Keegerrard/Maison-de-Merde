@@ -13,8 +13,10 @@ import type { BadgeSummary, SessionCreateResponse } from "@/lib/types";
 // file again.
 export default function LogPanel({
   onNewlyUnlocked,
+  onOpenSession,
 }: {
   onNewlyUnlocked?: (badges: BadgeSummary[]) => void;
+  onOpenSession?: (id: number) => void;
 }) {
   const { sessions, loading, refresh } = useSessions();
   const { refresh: refreshDashboard } = useDashboard();
@@ -43,6 +45,7 @@ export default function LogPanel({
         <SessionList
           sessions={sessions}
           loading={loading}
+          onSelect={onOpenSession}
           stamp={
             showStamp
               ? { key: stampKey, onDone: () => setShowStamp(false) }

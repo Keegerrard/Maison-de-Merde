@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import GrainOverlay from "@/components/ui/GrainOverlay";
 import ToastProvider from "@/components/ui/ToastProvider";
+import { LanguageProvider } from "@/hooks/useLanguage";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -41,7 +42,9 @@ export default function RootLayout({
         <meta name="google" content="notranslate" />
       </head>
       <body>
-        <ToastProvider>{children}</ToastProvider>
+        <LanguageProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </LanguageProvider>
         <GrainOverlay />
       </body>
     </html>

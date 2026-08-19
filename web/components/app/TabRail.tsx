@@ -3,14 +3,15 @@
 import { motion } from "framer-motion";
 import Icon, { type IconName } from "../ui/Icon";
 import { SPRING } from "@/lib/motion";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export type TabId = "log" | "dashboard" | "circle" | "achievements";
 
-const TABS: { id: TabId; label: string; subtitle: string; icon: IconName }[] = [
-  { id: "log", label: "Journal", subtitle: "Log", icon: "FileText" },
-  { id: "dashboard", label: "Analyse", subtitle: "Dashboard", icon: "TrendingUp" },
-  { id: "circle", label: "Cercle", subtitle: "Circle", icon: "Users" },
-  { id: "achievements", label: "Distinctions", subtitle: "Achievements", icon: "Award" },
+const TAB_DEFS: { id: TabId; labelKey: string; subtitleKey: string; icon: IconName }[] = [
+  { id: "log", labelKey: "nav.log", subtitleKey: "nav.log.sub", icon: "FileText" },
+  { id: "dashboard", labelKey: "nav.dashboard", subtitleKey: "nav.dashboard.sub", icon: "TrendingUp" },
+  { id: "circle", labelKey: "nav.circle", subtitleKey: "nav.circle.sub", icon: "Users" },
+  { id: "achievements", labelKey: "nav.achievements", subtitleKey: "nav.achievements.sub", icon: "Award" },
 ];
 
 export default function TabRail({
@@ -20,6 +21,13 @@ export default function TabRail({
   active: TabId;
   onChange: (id: TabId) => void;
 }) {
+  const { t } = useLanguage();
+  const TABS = TAB_DEFS.map((tab) => ({
+    ...tab,
+    label: t(tab.labelKey),
+    subtitle: t(tab.subtitleKey),
+  }));
+
   return (
     <>
       {/* Desktop: horizontal tab strip with a sliding hairline indicator. */}

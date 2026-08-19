@@ -35,6 +35,7 @@ const circleRoutes = require("../src/routes/circle");
 const visionRoutes = require("../src/routes/vision");
 const chatRoutes = require("../src/routes/chat");
 const notificationsRoutes = require("../src/routes/notifications");
+const profileRoutes = require("../src/routes/profile");
 
 let failures = 0;
 function assert(cond, label) {
@@ -53,6 +54,7 @@ function makeApp() {
   app.use("/api/vision", visionRoutes);
   app.use("/api/chat", chatRoutes);
   app.use("/api/notifications", notificationsRoutes);
+  app.use("/api/profile", profileRoutes);
   return app;
 }
 
@@ -176,6 +178,40 @@ async function main() {
   body = await res.json();
   assert(body.sessions.length === 1 && body.sessions[0].shared_by_username === "marcus", "shared-with-me list shows the session with the sharer's username");
 
+  // --- Share caption + opt-in photo gating ---
+  res = await fetch(`${base}/sessions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ bristolType: 4, keepPhoto: true, photoDataUrl: "data:image/png;base64,AAAA" }),
+  });
+  body = await res.json();
+  const photoSessionId = body.session.id;
+
+  res = await fetch(`${base}/sessions/${photoSessionId}/share`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ username: "priya", caption: "rough one today", includePhoto: false }),
+  });
+  assert(res.status === 201, "share with caption + includePhoto:false succeeds");
+
+  res = await fetch(`${base}/sessions/${photoSessionId}`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(body.caption === "rough one today", `caption round-trips to the recipient (got ${JSON.stringify(body.caption)})`);
+  assert(body.session.photo_kept === null, "photo withheld from recipient when includePhoto was false");
+
+  res = await fetch(`${base}/sessions/${photoSessionId}/share`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ username: "priya", includePhoto: true }),
+  });
+  res = await fetch(`${base}/sessions/${photoSessionId}`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(!!body.session.photo_kept, "photo visible to recipient once re-shared with includePhoto:true");
+
+  res = await fetch(`${base}/sessions/${photoSessionId}`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  assert(!!body.session.photo_kept, "owner always sees their own kept photo regardless of share settings");
+
   // --- Chat (friends-only) ---
   res = await fetch(`${base}/chat/casey`, { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie1 }, body: JSON.stringify({ body: "hi" }) });
   assert(res.status === 400, `chatting with a non-friend is rejected (got ${res.status})`);
@@ -215,6 +251,51 @@ async function main() {
   res = await fetch(`${base}/notifications`, { headers: { Cookie: cookie2 } });
   body = await res.json();
   assert(body.unreadCount === 0, `unread count is 0 after mark-all-read (got ${body.unreadCount})`);
+
+  // --- Profile: own read/write, trait validation, public/private gating ---
+  res = await fetch(`${base}/profile`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  assert(res.status === 200 && body.username === "marcus" && body.isPublic === false, `default profile is private (got isPublic=${body.isPublic})`);
+  assert(body.stats.totalSessions === 3, `profile stats reflect 3 logged sessions (got ${body.stats.totalSessions})`);
+
+  res = await fetch(`${base}/profile`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ traitBadgeId: "streak_7" }),
+  });
+  assert(res.status === 400, "setting a trait for a badge you haven't unlocked is rejected");
+
+  res = await fetch(`${base}/profile`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ nickname: "The Regular", banner: "gold", traitBadgeId: "milestone_first", isPublic: false }),
+  });
+  body = await res.json();
+  assert(res.status === 200 && body.nickname === "The Regular" && body.banner === "gold" && body.traitBadgeId === "milestone_first", `profile update round-trips (got ${JSON.stringify(body)})`);
+
+  res = await fetch(`${base}/profile`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ banner: "not-a-real-banner" }),
+  });
+  assert(res.status === 400, "an unknown banner value is rejected");
+
+  // casey isn't friends with marcus and marcus's profile is still private
+  res = await fetch(`${base}/profile/marcus`, { headers: { Cookie: cookie3 } });
+  assert(res.status === 403, `a non-friend can't view a private profile (got ${res.status})`);
+
+  // priya IS friends with marcus, so she can see it despite it being private
+  res = await fetch(`${base}/profile/marcus`, { headers: { Cookie: cookie2 } });
+  body = await res.json();
+  assert(res.status === 200 && body.nickname === "The Regular", "a friend can view a private profile");
+
+  res = await fetch(`${base}/profile`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ isPublic: true }),
+  });
+  res = await fetch(`${base}/profile/marcus`, { headers: { Cookie: cookie3 } });
+  assert(res.status === 200, "a stranger can view the profile once it's made public");
 
   // --- Remember me: cookie persistence is opt-out via remember:false ---
   res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "casey", password: "correcthorse3", remember: false }) });

@@ -37,6 +37,7 @@ const circleRoutes = require("../src/routes/circle");
 const visionRoutes = require("../src/routes/vision");
 const chatRoutes = require("../src/routes/chat");
 const notificationsRoutes = require("../src/routes/notifications");
+const profileRoutes = require("../src/routes/profile");
 
 let failures = 0;
 function assert(cond, label) {
@@ -55,6 +56,7 @@ function makeApp() {
   app.use("/api/vision", visionRoutes);
   app.use("/api/chat", chatRoutes);
   app.use("/api/notifications", notificationsRoutes);
+  app.use("/api/profile", profileRoutes);
   return app;
 }
 
@@ -244,6 +246,29 @@ async function main() {
   res = await fetch(`${base}/notifications`, { headers: { Cookie: cookie1 } });
   body = await res.json();
   assert(body.unreadCount === 0, `unread count is 0 after mark-all-read (got ${body.unreadCount})`);
+
+  // --- Profile: own read/write, trait validation, privacy gating ---
+  res = await fetch(`${base}/profile`, { headers: { Cookie: cookie1 } });
+  body = await res.json();
+  assert(res.status === 200 && body.isPublic === false, "profile is private by default");
+
+  res = await fetch(`${base}/profile`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ traitBadgeId: "streak_365" }),
+  });
+  assert(res.status === 400, "can't set a trait for an unearned badge");
+
+  res = await fetch(`${base}/profile`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ nickname: "M", banner: "claret", traitBadgeId: "milestone_first", isPublic: true }),
+  });
+  body = await res.json();
+  assert(res.status === 200 && body.banner === "claret", "profile update round-trips");
+
+  res = await fetch(`${base}/profile/marcus`, { headers: { Cookie: cookie2 } });
+  assert(res.status === 200, "a public profile is visible to anyone");
 
   // --- Remember me ---
   res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus", password: "correcthorse1", remember: false }) });

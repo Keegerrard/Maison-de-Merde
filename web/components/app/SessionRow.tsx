@@ -2,13 +2,41 @@ import Icon from "../ui/Icon";
 import { formatSessionTime } from "@/lib/format";
 import { COLOR_LABELS, COLOR_SWATCHES } from "@/lib/enums";
 import { BRISTOL_COLORS } from "@/lib/bristol";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { SessionRow as SessionRowType } from "@/lib/types";
 
 // Reads GET /api/sessions row shape — snake_case (§0.3), unlike the
 // camelCase POST body used by DetailLogForm/QuickLogCard.
-export default function SessionRow({ session }: { session: SessionRowType }) {
+export default function SessionRow({
+  session,
+  onClick,
+}: {
+  session: SessionRowType;
+  onClick?: () => void;
+}) {
+  const { t } = useLanguage();
   return (
-    <div className="flex flex-wrap items-center gap-3 px-4 py-4 md:px-6">
+    <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+      className={[
+        "flex w-full flex-wrap items-center gap-3 px-4 py-4 text-left md:px-6",
+        onClick
+          ? "cursor-pointer transition-colors duration-150 [@media(hover:hover)_and_(pointer:fine)]:hover:bg-paper-sunk"
+          : "",
+      ].join(" ")}
+    >
       <span className="font-mono text-small text-ink-500">
         {formatSessionTime(session.occurred_at)}
       </span>
@@ -25,7 +53,7 @@ export default function SessionRow({ session }: { session: SessionRowType }) {
           </span>
         ) : (
           <span className="inline-flex items-center rounded-pill bg-paper-sunk px-2.5 py-1 text-small text-ink-500 ring-1 ring-rule">
-            quick log
+            {t("session.quickLog")}
           </span>
         )}
 
@@ -43,7 +71,7 @@ export default function SessionRow({ session }: { session: SessionRowType }) {
         {session.blood_flag ? (
           <span className="inline-flex items-center gap-1.5 rounded-pill bg-claret-100 px-2.5 py-1 text-small text-claret-600 ring-1 ring-claret-200">
             <Icon name="Droplet" size={12} />
-            blood flagged
+            {t("session.bloodFlagged")}
           </span>
         ) : null}
       </div>

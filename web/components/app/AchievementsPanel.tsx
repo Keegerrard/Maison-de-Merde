@@ -6,10 +6,12 @@ import DoubleBezelCard from "@/components/ui/DoubleBezelCard";
 import EyebrowTag from "@/components/ui/EyebrowTag";
 import SkeletonBlock from "@/components/ui/SkeletonBlock";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useLanguage } from "@/hooks/useLanguage";
 import { BADGE_IDS } from "@/lib/enums";
 import { EASE } from "@/lib/motion";
 
 export default function AchievementsPanel() {
+  const { t } = useLanguage();
   const { data, loading, error } = useDashboard();
   const reduceMotion = useReducedMotion();
 
@@ -20,9 +22,7 @@ export default function AchievementsPanel() {
   if (error && !data) {
     return (
       <DoubleBezelCard>
-        <p className="text-body text-ink-500">
-          Could not load your distinctions. Try again shortly.
-        </p>
+        <p className="text-body text-ink-500">{t("achievements.error")}</p>
       </DoubleBezelCard>
     );
   }
@@ -35,10 +35,10 @@ export default function AchievementsPanel() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
-        <EyebrowTag>Les distinctions</EyebrowTag>
-        <h2 className="font-display text-title text-ink-900">Nine distinctions.</h2>
+        <EyebrowTag>{t("achievements.eyebrow")}</EyebrowTag>
+        <h2 className="font-display text-title text-ink-900">{t("achievements.title")}</h2>
         <p className="font-mono text-eyebrow uppercase text-ink-500">
-          {unlockedCount} sur {total} obtenues
+          {t("achievements.progress", { n: unlockedCount, total })}
         </p>
         <div className="h-px w-full overflow-hidden bg-rule">
           <motion.div

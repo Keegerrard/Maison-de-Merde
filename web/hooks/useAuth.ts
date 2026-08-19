@@ -28,7 +28,7 @@ export function useAuth() {
   const login = useCallback(async (body: LoginBody) => {
     const me = await apiFetch<AuthUser>("/api/auth/login", {
       method: "POST",
-      body,
+      body: { remember: true, ...body },
     });
     setUser(me);
     setStatus("authed");

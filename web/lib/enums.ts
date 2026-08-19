@@ -65,6 +65,19 @@ export const SYMPTOMS = [
 ] as const;
 export type SymptomValue = (typeof SYMPTOMS)[number]["value"];
 
+// Profile card banner themes — kept in sync with server/src/routes/profile.js
+// BANNERS. Values are raw hex so the flex-card <canvas> export (which can't
+// read CSS custom properties) can use them directly.
+export const BANNERS = [
+  { id: "sage", label: "Sage", from: "#3f5646", to: "#5f7f68" },
+  { id: "claret", label: "Claret", from: "#5a1e26", to: "#8a2e39" },
+  { id: "ink", label: "Ink", from: "#0b0908", to: "#3a332c" },
+  { id: "gold", label: "Gilded", from: "#7a5a1e", to: "#c9a227" },
+  { id: "rose", label: "Rose", from: "#7a3b46", to: "#c98a97" },
+  { id: "slate", label: "Slate", from: "#33393f", to: "#6b7580" },
+] as const;
+export type BannerId = (typeof BANNERS)[number]["id"];
+
 // The nine fixed badge ids from server/src/streak.js BADGES.
 export const BADGE_IDS = [
   "milestone_first",

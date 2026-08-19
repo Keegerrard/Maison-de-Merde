@@ -8,13 +8,29 @@ import AddFriendField from "./AddFriendField";
 import FriendRequestRow from "./FriendRequestRow";
 import LeaderboardRow from "./LeaderboardRow";
 import { useCircle } from "@/hooks/useCircle";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
-import type { FriendRequest } from "@/lib/types";
+import { useLanguage } from "@/hooks/useLanguage";
+import { formatSessionTime } from "@/lib/format";
+import type { FriendRequest, SharedSessionsResponse, SharedSessionRow } from "@/lib/types";
 
-export default function CirclePanel() {
+export default function CirclePanel({
+  onOpenChat,
+  onOpenSession,
+}: {
+  onOpenChat?: (username: string) => void;
+  onOpenSession?: (id: number) => void;
+}) {
+  const { t } = useLanguage();
   const { leaderboard, requests, loading, error, refresh } = useCircle();
   const [acceptingId, setAcceptingId] = useState<number | null>(null);
+  const [shared, setShared] = useState<SharedSessionRow[]>([]);
+
+  useEffect(() => {
+    apiFetch<SharedSessionsResponse>("/api/sessions/shared")
+      .then((res) => setShared(res.sessions))
+      .catch(() => setShared([]));
+  }, []);
 
   async function handleAccept(request: FriendRequest) {
     setAcceptingId(request.id);
@@ -32,9 +48,9 @@ export default function CirclePanel() {
   return (
     <div className="flex flex-col gap-6">
       <SectionHeading
-        eyebrow="THE CIRCLE"
-        title="Ranked on consistency."
-        lede="Never on volume. Rewarding volume here would be irresponsible."
+        eyebrow={t("circle.eyebrow")}
+        title={t("circle.title")}
+        lede={t("circle.lede")}
       />
 
       <DoubleBezelCard>
@@ -64,7 +80,7 @@ export default function CirclePanel() {
         </DoubleBezelCard>
       ) : loading ? (
         <DoubleBezelCard>
-          <p className="text-small text-ink-500">Loading your circle…</p>
+          <p className="text-small text-ink-500">{t("common.loading")}</p>
         </DoubleBezelCard>
       ) : (
         <DoubleBezelCard padding="none">
@@ -75,16 +91,49 @@ export default function CirclePanel() {
                 entry={entry}
                 rank={index + 1}
                 index={index}
+                onChat={!entry.isMe && onOpenChat ? () => onOpenChat(entry.username) : undefined}
               />
             ))}
           </div>
           {leaderboard.length === 1 ? (
             <div className="px-4 md:px-6">
-              <EmptyState message="A circle of one is still a circle. Add someone by name above." />
+              <EmptyState message={t("circle.empty")} />
             </div>
           ) : null}
         </DoubleBezelCard>
       )}
+
+      <p className="font-display text-title text-ink-900">{t("circle.sharedWithYou")}</p>
+      <DoubleBezelCard padding="none">
+        {shared.length === 0 ? (
+          <div className="px-4 md:px-6">
+            <EmptyState message={t("circle.sharedEmpty")} />
+          </div>
+        ) : (
+          <div className="divide-y divide-rule">
+            {shared.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onOpenSession?.(s.id)}
+                className="flex w-full flex-col gap-1 px-4 py-4 text-left [@media(hover:hover)_and_(pointer:fine)]:hover:bg-paper-sunk md:px-6"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-small font-medium text-ink-900">
+                    {s.shared_by_username}
+                  </span>
+                  <span className="font-mono text-small text-ink-500">
+                    {formatSessionTime(s.shared_at)}
+                  </span>
+                </div>
+                {s.caption ? (
+                  <p className="text-small italic text-ink-700">“{s.caption}”</p>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        )}
+      </DoubleBezelCard>
     </div>
   );
 }

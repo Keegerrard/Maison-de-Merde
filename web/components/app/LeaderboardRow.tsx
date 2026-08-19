@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Icon from "../ui/Icon";
 import { formatPercent, initialOf } from "@/lib/format";
 import { SPRING } from "@/lib/motion";
 import type { LeaderboardEntry } from "@/lib/types";
@@ -9,10 +10,12 @@ export default function LeaderboardRow({
   entry,
   rank,
   index,
+  onChat,
 }: {
   entry: LeaderboardEntry;
   rank: number;
   index: number;
+  onChat?: () => void;
 }) {
   const isTop = rank <= 3;
 
@@ -69,6 +72,17 @@ export default function LeaderboardRow({
           />
         </div>
       </div>
+
+      {onChat ? (
+        <button
+          type="button"
+          onClick={onChat}
+          aria-label={`Chat with ${entry.username}`}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-pill ring-1 ring-rule [@media(hover:hover)_and_(pointer:fine)]:hover:bg-paper-sunk"
+        >
+          <Icon name="MessageCircle" size={15} className="text-ink-500" />
+        </button>
+      ) : null}
     </motion.div>
   );
 }
