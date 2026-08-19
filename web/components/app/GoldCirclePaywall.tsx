@@ -188,7 +188,7 @@ export default function GoldCirclePaywall({
               >
                 {phase === "success"
                   ? "Welcome to the Gold Circle"
-                  : `Join the Gold Circle — ${TIER_PRICE[tier]}`}
+                  : `Join the Gold Circle: ${TIER_PRICE[tier]}`}
               </motion.span>
             </span>
           </PressButton>
@@ -196,7 +196,7 @@ export default function GoldCirclePaywall({
 
         <Rule className="mt-6" />
         <p className="mt-4 text-center font-mono text-eyebrow text-ink-500">
-          This is a demo paywall for a satirical app — no card is real, no
+          This is a demo paywall for a satirical app. No card is real, no
           payment is processed, and nothing is charged. Any details entered
           here go nowhere.
         </p>

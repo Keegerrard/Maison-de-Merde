@@ -67,7 +67,7 @@ export default function BristolDistribution() {
               </div>
               {i === 3 ? (
                 <p className="mb-1 mt-1 pl-9 font-mono text-[0.625rem] uppercase tracking-[0.16em] text-sage-600">
-                  Types 3–4 — typical range
+                  Types 3-4, typical range
                 </p>
               ) : null}
             </div>
