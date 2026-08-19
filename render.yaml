@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: maison-de-merde
+    runtime: node
+    plan: free
+    # Root Directory is intentionally unset (repo root) — the build needs
+    # both web/ (Next.js frontend) and server/ (Express API). `npm run
+    # build` compiles web/ and copies its static export into
+    # server/public/, which the Express process then serves.
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
