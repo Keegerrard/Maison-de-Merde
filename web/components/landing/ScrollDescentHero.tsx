@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import {
   motion,
@@ -9,14 +10,19 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
-import { BRISTOL_HEX, BRISTOL_PATHS, MORPH_STOPS } from "@/lib/bristol";
+import { BRISTOL_HEX, BRISTOL_PATHS } from "@/lib/bristol";
 import ArrowCTAButton from "../ui/ArrowCTAButton";
 import BristolLegendRail from "./BristolLegendRail";
-import BristolMorphPath from "./BristolMorphPath";
 
 const RIM_CX = 200;
 const RIM_CY = 700;
-const SPECIMEN_START_Y = 210;
+
+// WebGL needs the browser; keep it out of the server bundle entirely and
+// only pull it in on the client, after hydration.
+const Toilet3DScene = dynamic(() => import("./Toilet3DScene"), {
+  ssr: false,
+  loading: () => null,
+});
 
 function CopyBlock({
   style,
@@ -74,56 +80,6 @@ export default function ScrollDescentHero() {
   const copyY = useTransform(scrollYProgress, [0, 0.2], [0, -48]);
   const copyOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
-  // Rim: visible at rest (not a blank frame waiting on scroll), draws the
-  // rest of the way in as the lid starts lifting.
-  const rimPathLength = useTransform(scrollYProgress, [0, 0.14], [0.7, 1]);
-  const rimOpacity = useTransform(scrollYProgress, [0, 0.08], [0.9, 1]);
-
-  // Lid: closed -> open -> closed, as a full transform string.
-  const lidDeg = useTransform(
-    scrollYProgress,
-    [0, 0.06, 0.16, 0.94, 1],
-    [0, 0, -104, -104, 0]
-  );
-  const lidTransform = useTransform(lidDeg, (d) => `rotateX(${d}deg)`);
-
-  // Specimen: appear, descend, morph, fade.
-  const specimenOpacity = useTransform(
-    scrollYProgress,
-    [0.16, 0.22, 0.9, 0.94],
-    [0, 1, 1, 0]
-  );
-  const specimenScale = useTransform(
-    scrollYProgress,
-    [0.16, 0.22, 0.88],
-    [0.86, 0.92, 1]
-  );
-  const specimenTy = useTransform(scrollYProgress, [0.22, 0.88], [-40, 560]);
-  const specimenRotateDeg = useTransform(scrollYProgress, [0.22, 0.88], [-6, 8]);
-  const specimenTransform = useTransform(() => {
-    return `translateY(${specimenTy.get()}px) rotate(${specimenRotateDeg.get()}deg) scale(${specimenScale.get()})`;
-  });
-  const morphStopsArr = [...MORPH_STOPS];
-  const morphedD = useTransform(scrollYProgress, morphStopsArr, [...BRISTOL_PATHS]);
-  const morphedFill = useTransform(scrollYProgress, morphStopsArr, [...BRISTOL_HEX]);
-
-  // Ripples on contact.
-  const rippleAScale = useTransform(scrollYProgress, [0.88, 0.94], [0.4, 1.6]);
-  const rippleAOpacity = useTransform(scrollYProgress, [0.88, 0.94], [1, 0]);
-  const rippleATransform = useTransform(rippleAScale, (s) => `scale(${s})`);
-  const rippleBScale = useTransform(
-    scrollYProgress,
-    [0.895, 0.955],
-    [0.4, 1.6]
-  );
-  const rippleBOpacity = useTransform(scrollYProgress, [0.895, 0.955], [1, 0]);
-  const rippleBTransform = useTransform(rippleBScale, (s) => `scale(${s})`);
-
-  // Plate wrapper settles as the lid closes.
-  const plateOpacity = useTransform(scrollYProgress, [0.94, 1], [1, 0.35]);
-  const plateBlur = useTransform(scrollYProgress, [0.94, 1], [0, 3]);
-  const plateFilter = useTransform(plateBlur, (b) => `blur(${b}px)`);
-
   if (reduce) {
     return (
       <section className="relative min-h-[100dvh] w-full">
@@ -145,118 +101,8 @@ export default function ScrollDescentHero() {
           <CopyBlock style={{ y: copyY, opacity: copyOpacity }} />
 
           <div className="relative mx-auto flex w-full max-w-[380px] flex-col items-center gap-3 md:max-w-none">
-            <div
-              className="relative aspect-[4/5] h-[42dvh] max-h-[380px] min-h-[240px] w-auto"
-              style={{ perspective: "900px" }}
-            >
-              <svg
-                viewBox="0 0 400 900"
-                className="absolute inset-0 h-full w-full overflow-visible"
-                aria-hidden="true"
-              >
-                <motion.ellipse
-                  cx={RIM_CX}
-                  cy={RIM_CY}
-                  rx={150}
-                  ry={46}
-                  fill="none"
-                  stroke="var(--ink-500)"
-                  strokeWidth={1.75}
-                  style={{ pathLength: rimPathLength, opacity: rimOpacity }}
-                />
-                <motion.ellipse
-                  cx={RIM_CX}
-                  cy={RIM_CY}
-                  rx={118}
-                  ry={34}
-                  fill="none"
-                  stroke="var(--ink-300)"
-                  strokeWidth={1.5}
-                  style={{ pathLength: rimPathLength, opacity: rimOpacity }}
-                />
-                <ellipse
-                  cx={RIM_CX}
-                  cy={RIM_CY + 2}
-                  rx={108}
-                  ry={30}
-                  fill="var(--paper-sunk)"
-                />
-
-                <g transform={`translate(${RIM_CX}, ${SPECIMEN_START_Y})`}>
-                  <motion.g
-                    style={{
-                      transformBox: "fill-box",
-                      transformOrigin: "50% 50%",
-                      transform: specimenTransform,
-                      opacity: specimenOpacity,
-                    }}
-                  >
-                    <BristolMorphPath d={morphedD} fill={morphedFill} />
-                  </motion.g>
-                </g>
-
-                <motion.ellipse
-                  cx={RIM_CX}
-                  cy={RIM_CY + 2}
-                  rx={60}
-                  ry={17}
-                  fill="none"
-                  stroke="var(--rule-strong)"
-                  style={{
-                    transformBox: "fill-box",
-                    transformOrigin: "50% 50%",
-                    transform: rippleATransform,
-                    opacity: rippleAOpacity,
-                  }}
-                />
-                <motion.ellipse
-                  cx={RIM_CX}
-                  cy={RIM_CY + 2}
-                  rx={60}
-                  ry={17}
-                  fill="none"
-                  stroke="var(--rule)"
-                  style={{
-                    transformBox: "fill-box",
-                    transformOrigin: "50% 50%",
-                    transform: rippleBTransform,
-                    opacity: rippleBOpacity,
-                  }}
-                />
-              </svg>
-
-              <motion.div
-                aria-hidden="true"
-                className="absolute inset-0"
-                style={{
-                  transformOrigin: "50% 78%",
-                  transform: lidTransform,
-                  opacity: plateOpacity,
-                  filter: plateFilter,
-                }}
-              >
-                <svg
-                  viewBox="0 0 400 900"
-                  className="h-full w-full overflow-visible"
-                >
-                  <path
-                    d={`M ${RIM_CX - 150} ${RIM_CY}
-                        C ${RIM_CX - 150} ${RIM_CY - 46} ${RIM_CX + 150} ${RIM_CY - 46} ${RIM_CX + 150} ${RIM_CY}
-                        C ${RIM_CX + 150} ${RIM_CY + 46} ${RIM_CX - 150} ${RIM_CY + 46} ${RIM_CX - 150} ${RIM_CY} Z`}
-                    fill="var(--paper-raised)"
-                    stroke="var(--ink-500)"
-                    strokeWidth={1.75}
-                    style={{ filter: "drop-shadow(0 10px 24px rgba(20, 17, 15, 0.12))" }}
-                  />
-                  <path
-                    d={`M ${RIM_CX - 140} ${RIM_CY}
-                        C ${RIM_CX - 140} ${RIM_CY - 40} ${RIM_CX + 140} ${RIM_CY - 40} ${RIM_CX + 140} ${RIM_CY}`}
-                    fill="none"
-                    stroke="var(--ink-300)"
-                    strokeWidth={1.25}
-                  />
-                </svg>
-              </motion.div>
+            <div className="relative aspect-[4/5] h-[42dvh] max-h-[380px] min-h-[240px] w-auto">
+              <Toilet3DScene progress={scrollYProgress} fallback={<StaticPlate />} />
             </div>
 
             <p className="font-mono text-eyebrow uppercase text-ink-300">
