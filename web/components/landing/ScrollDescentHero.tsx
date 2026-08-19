@@ -306,9 +306,13 @@ function StaticPlate() {
           ry={30}
           fill="var(--paper-sunk)"
         />
-        <g transform={`translate(${RIM_CX}, ${RIM_CY - 60})`}>
+        <motion.g
+          transform={`translate(${RIM_CX}, ${RIM_CY - 60})`}
+          animate={{ opacity: [0.86, 1, 0.86] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        >
           <path d={BRISTOL_PATHS[3]} fill={BRISTOL_HEX[3]} />
-        </g>
+        </motion.g>
       </svg>
     </div>
   );
