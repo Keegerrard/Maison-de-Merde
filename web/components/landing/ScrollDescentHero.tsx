@@ -74,9 +74,10 @@ export default function ScrollDescentHero() {
   const copyY = useTransform(scrollYProgress, [0, 0.2], [0, -48]);
   const copyOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
-  // Rim draw-in.
-  const rimPathLength = useTransform(scrollYProgress, [0.02, 0.14], [0, 1]);
-  const rimOpacity = useTransform(scrollYProgress, [0.02, 0.14], [0, 1]);
+  // Rim: visible at rest (not a blank frame waiting on scroll), draws the
+  // rest of the way in as the lid starts lifting.
+  const rimPathLength = useTransform(scrollYProgress, [0, 0.14], [0.7, 1]);
+  const rimOpacity = useTransform(scrollYProgress, [0, 0.08], [0.9, 1]);
 
   // Lid: closed -> open -> closed, as a full transform string.
   const lidDeg = useTransform(
@@ -159,8 +160,8 @@ export default function ScrollDescentHero() {
                   rx={150}
                   ry={46}
                   fill="none"
-                  stroke="var(--rule-strong)"
-                  strokeWidth={1}
+                  stroke="var(--ink-500)"
+                  strokeWidth={1.75}
                   style={{ pathLength: rimPathLength, opacity: rimOpacity }}
                 />
                 <motion.ellipse
@@ -169,8 +170,8 @@ export default function ScrollDescentHero() {
                   rx={118}
                   ry={34}
                   fill="none"
-                  stroke="var(--rule)"
-                  strokeWidth={1}
+                  stroke="var(--ink-300)"
+                  strokeWidth={1.5}
                   style={{ pathLength: rimPathLength, opacity: rimOpacity }}
                 />
                 <ellipse
@@ -243,15 +244,16 @@ export default function ScrollDescentHero() {
                         C ${RIM_CX - 150} ${RIM_CY - 46} ${RIM_CX + 150} ${RIM_CY - 46} ${RIM_CX + 150} ${RIM_CY}
                         C ${RIM_CX + 150} ${RIM_CY + 46} ${RIM_CX - 150} ${RIM_CY + 46} ${RIM_CX - 150} ${RIM_CY} Z`}
                     fill="var(--paper-raised)"
-                    stroke="var(--rule-strong)"
-                    strokeWidth={1}
+                    stroke="var(--ink-500)"
+                    strokeWidth={1.75}
+                    style={{ filter: "drop-shadow(0 10px 24px rgba(20, 17, 15, 0.12))" }}
                   />
                   <path
                     d={`M ${RIM_CX - 140} ${RIM_CY}
                         C ${RIM_CX - 140} ${RIM_CY - 40} ${RIM_CX + 140} ${RIM_CY - 40} ${RIM_CX + 140} ${RIM_CY}`}
                     fill="none"
-                    stroke="var(--rule)"
-                    strokeWidth={1}
+                    stroke="var(--ink-300)"
+                    strokeWidth={1.25}
                   />
                 </svg>
               </motion.div>
@@ -287,8 +289,8 @@ function StaticPlate() {
           rx={150}
           ry={46}
           fill="none"
-          stroke="var(--rule-strong)"
-          strokeWidth={1}
+          stroke="var(--ink-500)"
+          strokeWidth={1.75}
         />
         <ellipse
           cx={RIM_CX}
@@ -296,8 +298,8 @@ function StaticPlate() {
           rx={118}
           ry={34}
           fill="none"
-          stroke="var(--rule)"
-          strokeWidth={1}
+          stroke="var(--ink-300)"
+          strokeWidth={1.5}
         />
         <ellipse
           cx={RIM_CX}
