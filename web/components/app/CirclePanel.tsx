@@ -32,7 +32,7 @@ export default function CirclePanel() {
   return (
     <div className="flex flex-col gap-6">
       <SectionHeading
-        eyebrow="LE CERCLE"
+        eyebrow="THE CIRCLE"
         title="Ranked on consistency."
         lede="Never on volume. Rewarding volume here would be irresponsible."
       />

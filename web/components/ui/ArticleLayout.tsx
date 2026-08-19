@@ -26,11 +26,11 @@ export default function ArticleLayout({
             href="/#journal"
             className="inline-flex w-fit items-center text-small text-ink-500 transition-colors duration-[140ms] ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:text-ink-900"
           >
-            ← Retour
+            ← Back
           </a>
 
           <p className="mt-10 font-mono text-eyebrow uppercase tracking-[0.22em] text-ink-500">
-            LE JOURNAL · {kicker}
+            THE JOURNAL · {kicker}
           </p>
           <h1 className="mt-4 font-display text-display text-ink-900">
             {title}

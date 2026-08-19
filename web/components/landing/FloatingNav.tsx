@@ -15,9 +15,9 @@ import { EASE, DURATION, SPRING, STAGGER_STEP } from "@/lib/motion";
 type SectionId = "systeme" | "cercle" | "journal";
 
 const NAV_LINKS: { id: SectionId; label: string }[] = [
-  { id: "systeme", label: "Le Système" },
-  { id: "cercle", label: "Le Cercle" },
-  { id: "journal", label: "Le Journal" },
+  { id: "systeme", label: "The System" },
+  { id: "cercle", label: "The Circle" },
+  { id: "journal", label: "The Journal" },
 ];
 
 const HOVER = "[@media(hover:hover)_and_(pointer:fine)]:hover";
@@ -149,7 +149,7 @@ export default function FloatingNav() {
           </ul>
 
           <div className="relative hidden md:block">
-            <ArrowCTAButton href="/app/">Entrer</ArrowCTAButton>
+            <ArrowCTAButton href="/app/">Enter</ArrowCTAButton>
           </div>
 
           <button
@@ -211,7 +211,7 @@ export default function FloatingNav() {
               ))}
               <motion.li variants={itemVariants}>
                 <ArrowCTAButton href="/app/" onClick={() => setMobileOpen(false)}>
-                  Entrer
+                  Enter
                 </ArrowCTAButton>
               </motion.li>
             </motion.ul>

@@ -20,7 +20,7 @@ const TYPES: { n: number; label: string }[] = [
 
 export default function BristolScalePage() {
   return (
-    <ArticleLayout kicker="TAXONOMIE" title="Why we did not invent our own scale">
+    <ArticleLayout kicker="TAXONOMY" title="Why we did not invent our own scale">
       <p>
         The temptation, building a product like this, is to invent something
         better: a proprietary ten-point scale, a set of friendlier names, an

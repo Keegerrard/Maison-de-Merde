@@ -53,7 +53,7 @@ export default function QuickLogCard({
           disabled={quickSubmitting}
           onClick={handleQuickLog}
         >
-          Enregistrer maintenant
+          Save Now
         </PressButton>
         <PressButton
           type="button"
@@ -62,7 +62,7 @@ export default function QuickLogCard({
           className="sm:w-auto"
           onClick={() => setDetailOpen((v) => !v)}
         >
-          Ajouter les détails
+          Add Details
         </PressButton>
       </div>
 

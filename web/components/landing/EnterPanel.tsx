@@ -43,7 +43,7 @@ export default function EnterPanel() {
       <Reveal>
         <DoubleBezelCard padding="default" className="w-full">
           <div className="flex flex-col items-center gap-8 py-8 text-center md:py-12">
-            <EyebrowTag>ENTREZ</EyebrowTag>
+            <EyebrowTag>ENTER</EyebrowTag>
 
             <div className="flex max-w-[24ch] flex-col gap-3">
               <h2 className="text-display font-display text-ink-900">
@@ -61,7 +61,7 @@ export default function EnterPanel() {
             >
               <div className="flex-1">
                 <TextInput
-                  label="Nom d'utilisateur"
+                  label="Username"
                   mono
                   placeholder="3–24 characters"
                   name="username"
@@ -84,10 +84,10 @@ export default function EnterPanel() {
                       size={14}
                       className="animate-spin"
                     />
-                    Ouvrir le registre
+                    Open the Register
                   </span>
                 ) : (
-                  "Ouvrir le registre"
+                  "Open the Register"
                 )}
               </ArrowCTAButton>
             </form>

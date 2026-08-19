@@ -99,9 +99,9 @@ function StreakVisual() {
 // with mono ranks and streak figures; names replaced by redaction bars.
 function LeaderboardVisual() {
   const rows = [
-    { rank: "01", bar: "w-24", streak: "42j" },
-    { rank: "02", bar: "w-20", streak: "31j" },
-    { rank: "03", bar: "w-16", streak: "18j" },
+    { rank: "01", bar: "w-24", streak: "42d" },
+    { rank: "02", bar: "w-20", streak: "31d" },
+    { rank: "03", bar: "w-16", streak: "18d" },
   ];
 
   return (
@@ -155,7 +155,7 @@ function VisionVisual() {
       </div>
       <div className="flex items-center justify-between font-mono text-eyebrow text-ink-300">
         <span>0.00</span>
-        <span className="text-ink-500">SEUIL 0.40</span>
+        <span className="text-ink-500">THRESHOLD 0.40</span>
         <span>1.00</span>
       </div>
     </div>
@@ -183,7 +183,7 @@ const SUBSYSTEMS = [
     index: "03",
     title: "Social / Leaderboard Service",
     description:
-      "Ranks a circle on streak and consistency. Aggregate figures only — the details never leave your account.",
+      "Ranks a circle on streak and consistency. Aggregate figures only. The details never leave your account.",
     visual: <LeaderboardVisual />,
     spanRows: false,
   },
@@ -202,7 +202,7 @@ export default function SubsystemGrid() {
     <EditorialSplit
       rail={
         <SectionHeading
-          eyebrow="LES QUATRE SYSTÈMES"
+          eyebrow="FOUR SYSTEMS"
           title="Four services, one ledger."
           lede="The vision model is deliberately kept out of the critical path. A ten-second log must never wait on inference."
         />

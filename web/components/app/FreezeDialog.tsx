@@ -61,20 +61,20 @@ export default function FreezeDialog({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Geler la série">
+    <Modal open={open} onClose={onClose} title="Freeze the Streak">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="font-mono text-eyebrow uppercase text-ink-300">
-            Cercle d&apos;Or
+            Gold Circle
           </p>
           <h2 className="mt-1 font-display text-title text-ink-900">
-            Geler la série
+            Freeze the Streak
           </h2>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label="Close"
           className="rounded-pill p-1.5 text-ink-500 transition-transform duration-[140ms] ease-out active:scale-[0.9] [@media(hover:hover)_and_(pointer:fine)]:hover:text-ink-900"
         >
           <Icon name="X" size={18} />
@@ -82,8 +82,8 @@ export default function FreezeDialog({
       </div>
 
       <p className="mb-6 text-body text-ink-500">
-        Choisissez le nombre de jours à geler. La série ne se brisera pas
-        pendant le gel.
+        Choose the number of days to freeze. The streak will not break
+        while it&apos;s frozen.
       </p>
 
       <div className="mb-6 grid grid-cols-4 gap-2">
@@ -95,14 +95,14 @@ export default function FreezeDialog({
             disabled={submitting}
             onClick={() => submitFreeze(d)}
           >
-            {d}j
+            {d}d
           </PressButton>
         ))}
       </div>
 
       <div className="flex items-end gap-3">
         <TextInput
-          label="Jours personnalisés (1–60)"
+          label="Custom days (1–60)"
           type="number"
           min={1}
           max={60}
@@ -119,7 +119,7 @@ export default function FreezeDialog({
           onClick={handleCustomSubmit}
         >
           <Icon name="Snowflake" size={16} />
-          Confirmer
+          Confirm
         </PressButton>
       </div>
     </Modal>

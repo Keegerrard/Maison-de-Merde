@@ -1,6 +1,6 @@
 export interface ServiceRowProps {
   index: string;
-  frenchName: string;
+  displayName: string;
   englishSubtitle: string;
   description: string;
   tags: string[];
@@ -9,7 +9,7 @@ export interface ServiceRowProps {
 
 export default function ServiceRow({
   index,
-  frenchName,
+  displayName,
   englishSubtitle,
   description,
   tags,
@@ -34,7 +34,7 @@ export default function ServiceRow({
             {index}
           </p>
           <div className="md:col-span-4">
-            <p className="font-display text-title text-ink-900">{frenchName}</p>
+            <p className="font-display text-title text-ink-900">{displayName}</p>
             <p className="mt-1 font-mono text-eyebrow uppercase tracking-[0.12em] text-ink-500">
               {englishSubtitle}
             </p>

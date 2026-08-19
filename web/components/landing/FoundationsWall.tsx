@@ -16,7 +16,7 @@ const CITATIONS = [
     authors: "Lewis, S. J. & Heaton, K. W.",
     year: "1997",
     title: "Stool Form Scale as a Useful Guide to Intestinal Transit Time",
-    source: "Scandinavian Journal of Gastroenterology, 32(9), 920–924.",
+    source: "Scandinavian Journal of Gastroenterology, 32(9), 920-924.",
     gloss:
       "The seven types. We adopted them rather than inventing our own, for the obvious reason.",
   },
@@ -25,7 +25,7 @@ const CITATIONS = [
     authors: "Kahneman, D. & Tversky, A.",
     year: "1979",
     title: "Prospect Theory: An Analysis of Decision under Risk",
-    source: "Econometrica, 47(2), 263–291.",
+    source: "Econometrica, 47(2), 263-291.",
     gloss:
       "Loss aversion. Why an unbroken streak is harder to abandon than a new one is to begin.",
   },
@@ -41,7 +41,7 @@ const PRIOR_ART = [
   },
   {
     title: "Opt-in leaderboards in social fitness",
-    note: "Visibility, not obligation — competing here is a choice, never a default.",
+    note: "Visibility, not obligation. Competing here is a choice, never a default.",
   },
   {
     title: "Photo-in, structured-data-out consumer health tools",
@@ -57,7 +57,7 @@ const COMMITMENTS = [
   },
   {
     label: "HEALTH DATA",
-    statement: "Never sold. Not a policy that could be revised — a constraint.",
+    statement: "Never sold. Not a policy that could be revised: a constraint.",
   },
   {
     label: "PORTABILITY",
@@ -76,9 +76,9 @@ export default function FoundationsWall() {
       id="cercle"
       rail={
         <SectionHeading
-          eyebrow="LE CERCLE"
+          eyebrow="THE CIRCLE"
           title="There are no customers to quote."
-          lede="So here is what the product rests on instead — two citations we did not write, three patterns we did not invent, and four constraints we do not get to revise."
+          lede="So here is what the product rests on instead: two citations we did not write, three patterns we did not invent, and four constraints we do not get to revise."
         />
       }
     >

@@ -17,7 +17,7 @@ export default function StreakPill() {
       className="flex items-center gap-2 rounded-pill bg-paper-sunk px-3.5 py-2 ring-1 ring-rule"
       title={
         frozen && data?.streakFreezeUntil
-          ? `Gelée jusqu'au ${data.streakFreezeUntil}`
+          ? `Frozen until ${data.streakFreezeUntil}`
           : undefined
       }
     >
@@ -33,7 +33,7 @@ export default function StreakPill() {
         {loading ? "0" : current}
       </span>
       <span className="hidden font-mono text-eyebrow uppercase text-ink-300 sm:inline">
-        jours
+        days
       </span>
     </div>
   );

@@ -36,16 +36,16 @@ export default function StatTriad() {
     <DoubleBezelCard padding="none">
       <div className="grid grid-cols-3 divide-x divide-rule">
         <div>
-          <StatCell label="Série en cours" value={current} />
+          <StatCell label="Current Streak" value={current} />
           {frozen && data?.streakFreezeUntil ? (
             <div className="-mt-3 flex items-center justify-center gap-1.5 pb-5 font-mono text-small text-sage-600">
               <Icon name="Snowflake" size={13} />
-              <span>Gelée jusqu&apos;au {data.streakFreezeUntil}</span>
+              <span>Frozen until {data.streakFreezeUntil}</span>
             </div>
           ) : null}
         </div>
         <StatCell label="Record" value={longest} />
-        <StatCell label="Jetons de grâce" value={grace} />
+        <StatCell label="Grace Tokens" value={grace} />
       </div>
     </DoubleBezelCard>
   );

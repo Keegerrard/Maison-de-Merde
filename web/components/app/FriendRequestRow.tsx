@@ -28,7 +28,7 @@ export default function FriendRequestRow({
       </span>
       <p className="flex-1 text-small text-ink-700">
         <span className="font-medium text-ink-900">{request.username}</span>{" "}
-        souhaite rejoindre votre cercle
+        wants to join your circle
       </p>
       <PressButton
         type="button"
@@ -39,7 +39,7 @@ export default function FriendRequestRow({
         {accepting ? (
           <Icon name="Loader2" size={14} className="animate-spin" />
         ) : null}
-        Accepter
+        Accept
       </PressButton>
     </motion.li>
   );
