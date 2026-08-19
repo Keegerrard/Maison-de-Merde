@@ -65,7 +65,7 @@ export default function FreezeDialog({
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="font-mono text-eyebrow uppercase text-ink-300">
-Gold Circle
+            Gold Circle
           </p>
           <h2 className="mt-1 font-display text-title text-ink-900">
             Freeze the Streak
