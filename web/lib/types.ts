@@ -20,6 +20,30 @@ export interface LoginBody {
   remember?: boolean;
 }
 
+export interface ChangeUsernameBody {
+  newUsername: string;
+  password: string;
+}
+
+export interface ChangeUsernameResponse {
+  id: number;
+  username: string;
+}
+
+export interface ForgotPasswordResponse {
+  ok: true;
+  delivered: boolean;
+  demoNote?: string;
+  resetToken?: string;
+  username?: string;
+  expiresAt?: string;
+}
+
+export interface ResetPasswordBody {
+  token: string;
+  newPassword: string;
+}
+
 // ---- Sessions --------------------------------------------------------------
 
 // POST /api/sessions body — camelCase.

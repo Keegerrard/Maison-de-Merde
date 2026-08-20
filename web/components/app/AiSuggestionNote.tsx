@@ -2,6 +2,7 @@
 
 import SkeletonRow from "../ui/SkeletonRow";
 import { COLOR_LABELS } from "@/lib/enums";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { VisionResultResponse } from "@/lib/types";
 
 export type AiSuggestionStatus = "loading" | "withheld" | "result" | "error";
@@ -15,6 +16,7 @@ export default function AiSuggestionNote({
   result?: VisionResultResponse | null;
   errorMessage?: string | null;
 }) {
+  const { t, tEnum } = useLanguage();
   return (
     <div className="rounded-core-sm bg-paper-sunk p-4 ring-1 ring-rule">
       {status === "loading" ? <SkeletonRow /> : null}
@@ -24,37 +26,31 @@ export default function AiSuggestionNote({
       ) : null}
 
       {status === "withheld" ? (
-        <p className="text-small text-ink-500">
-          The model was not confident enough to call this one. Please set the
-          fields yourself.
-        </p>
+        <p className="text-small text-ink-500">{t("ai.withheld")}</p>
       ) : null}
 
       {status === "result" && result ? (
         <div className="flex flex-col gap-2">
           <p className="font-mono text-small text-ink-700">
-            Confidence:{" "}
+            {t("ai.confidence")}{" "}
             <span className="text-ink-900">
               {Math.round(result.confidence * 100)}%
             </span>
           </p>
           <p className="text-small text-ink-700">
-            Suggests{" "}
+            {t("ai.suggestsPrefix")}{" "}
             {result.bristolTypeGuess
-              ? `Bristol Type ${result.bristolTypeGuess}`
-              : "no clear Bristol type"}
+              ? `${t("log.bristolType")} ${result.bristolTypeGuess}`
+              : t("ai.noClearType")}
             {result.colorGuess
-              ? `, colour ${COLOR_LABELS[result.colorGuess].toLowerCase()}`
+              ? `, ${tEnum("color", result.colorGuess, COLOR_LABELS[result.colorGuess]).toLowerCase()}`
               : ""}
-            {result.visibleFoodGuess ? ", visible undigested food" : ""}.
+            {result.visibleFoodGuess ? t("ai.visibleFoodGuess") : ""}.
           </p>
           {result.notes ? (
             <p className="text-small text-ink-500">{result.notes}</p>
           ) : null}
-          <p className="text-small text-ink-500">
-            This is a pattern-recognition aid, not a diagnosis. Please
-            confirm or correct the fields above.
-          </p>
+          <p className="text-small text-ink-500">{t("ai.notDiagnosis")}</p>
         </div>
       ) : null}
     </div>

@@ -3,8 +3,10 @@
 import Icon from "../ui/Icon";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function StreakPill() {
+  const { t } = useLanguage();
   const { data, loading } = useDashboard();
   const current = data?.streak.current ?? 0;
   const frozen =
@@ -17,7 +19,7 @@ export default function StreakPill() {
       className="flex items-center gap-2 rounded-pill bg-paper-sunk px-3.5 py-2 ring-1 ring-rule"
       title={
         frozen && data?.streakFreezeUntil
-          ? `Frozen until ${data.streakFreezeUntil}`
+          ? t("streak.frozenUntil", { date: data.streakFreezeUntil })
           : undefined
       }
     >
@@ -33,7 +35,7 @@ export default function StreakPill() {
         {loading ? "0" : current}
       </span>
       <span className="hidden font-mono text-eyebrow uppercase text-ink-300 sm:inline">
-        days
+        {t("streak.days")}
       </span>
     </div>
   );

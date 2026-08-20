@@ -270,13 +270,37 @@ async function main() {
   res = await fetch(`${base}/profile/marcus`, { headers: { Cookie: cookie2 } });
   assert(res.status === 200, "a public profile is visible to anyone");
 
-  // --- Remember me ---
-  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus", password: "correcthorse1", remember: false }) });
+  // --- Change username ---
+  res = await fetch(`${base}/auth/username`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Cookie: cookie1 },
+    body: JSON.stringify({ newUsername: "marcus2", password: "correcthorse1" }),
+  });
+  body = await res.json();
+  assert(res.status === 200 && body.username === "marcus2", `username change succeeds (got ${JSON.stringify(body)})`);
+
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus2", password: "correcthorse1" }) });
+  assert(res.status === 200, "can log back in with the new username");
+
+  // --- Forgot / reset password ---
+  res = await fetch(`${base}/auth/forgot-password`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus2" }) });
+  body = await res.json();
+  assert(res.status === 200 && typeof body.resetToken === "string", `forgot-password returns a reset token (got ${JSON.stringify(body)})`);
+
+  res = await fetch(`${base}/auth/reset-password`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: body.resetToken, newPassword: "newpassword1" }) });
+  assert(res.status === 200, "resetting with a valid token succeeds");
+
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus2", password: "newpassword1" }) });
+  assert(res.status === 200, "logging in with the new password works");
+
+  // --- Remember me --- (marcus was renamed to marcus2 and had their
+  // password reset to newpassword1 by the two blocks just above)
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus2", password: "newpassword1", remember: false }) });
   let rawSetCookie = res.headers.get("set-cookie") || "";
   assert(res.status === 200 && !/Max-Age/i.test(rawSetCookie), `remember:false issues a session-only cookie (got "${rawSetCookie}")`);
 
-  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus@example.com", password: "correcthorse1" }) });
-  assert(res.status === 200, `logging in with email instead of username works (got ${res.status})`);
+  res = await fetch(`${base}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: "marcus@example.com", password: "newpassword1" }) });
+  assert(res.status === 200, `logging in with email instead of username still works after the username change (got ${res.status})`);
 
   server.close();
   console.log(failures === 0 ? "\nAll db.test.js checks passed." : `\n${failures} check(s) FAILED.`);

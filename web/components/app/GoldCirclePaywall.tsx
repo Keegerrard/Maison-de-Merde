@@ -8,6 +8,7 @@ import TextInput from "../ui/TextInput";
 import Icon from "../ui/Icon";
 import Rule from "../ui/Rule";
 import { SPRING } from "@/lib/motion";
+import { useLanguage } from "@/hooks/useLanguage";
 
 type Tier = "monthly" | "annual";
 
@@ -42,6 +43,7 @@ export default function GoldCirclePaywall({
   reason: string;
   onSubscribed: () => void;
 }) {
+  const { t } = useLanguage();
   const [tier, setTier] = useState<Tier>("annual");
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -71,12 +73,12 @@ export default function GoldCirclePaywall({
   }
 
   return (
-    <Modal open={open} onClose={handleClose} title="The Gold Circle">
+    <Modal open={open} onClose={handleClose} title={t("paywall.title")}>
       <div className="relative">
         <button
           type="button"
           onClick={handleClose}
-          aria-label="Close"
+          aria-label={t("common.close")}
           className="absolute right-0 top-0 text-ink-500 [@media(hover:hover)_and_(pointer:fine)]:hover:text-ink-900"
         >
           <Icon name="X" size={16} />
@@ -87,19 +89,19 @@ export default function GoldCirclePaywall({
         </div>
 
         <h2 className="text-center font-display text-title text-ink-900">
-          The Gold Circle
+          {t("paywall.title")}
         </h2>
         <p className="mt-2 text-center text-small text-ink-500">{reason}</p>
 
         <div className="relative mt-6 flex rounded-pill bg-paper-sunk p-1">
-          {(["monthly", "annual"] as Tier[]).map((t) => (
+          {(["monthly", "annual"] as Tier[]).map((tierOption) => (
             <button
-              key={t}
+              key={tierOption}
               type="button"
-              onClick={() => setTier(t)}
+              onClick={() => setTier(tierOption)}
               className="relative flex-1 rounded-pill py-2.5 text-small"
             >
-              {tier === t ? (
+              {tier === tierOption ? (
                 <motion.span
                   layoutId="tier-selection"
                   className="absolute inset-0 rounded-pill bg-paper-raised shadow-ambient"
@@ -107,17 +109,18 @@ export default function GoldCirclePaywall({
                 />
               ) : null}
               <span className="relative z-10 flex flex-col items-center">
-                {t === "annual" ? (
+                {tierOption === "annual" ? (
                   <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-sage-600">
-                    Best value
+                    {t("paywall.bestValue")}
                   </span>
                 ) : (
                   <span className="h-[13px]" />
                 )}
                 <span
-                  className={tier === t ? "text-ink-900" : "text-ink-500"}
+                  className={tier === tierOption ? "text-ink-900" : "text-ink-500"}
                 >
-                  {t === "monthly" ? "Monthly" : "Annual"} {TIER_PRICE[t]}
+                  {tierOption === "monthly" ? t("paywall.monthly") : t("paywall.annual")}{" "}
+                  {TIER_PRICE[tierOption]}
                 </span>
               </span>
             </button>
@@ -125,11 +128,7 @@ export default function GoldCirclePaywall({
         </div>
 
         <ul className="mt-6 divide-y divide-rule border-y border-rule">
-          {[
-            "Unlimited streak freezes, for the travelling connoisseur",
-            "Missed-day recovery, discreetly arranged",
-            "A mark beside your name, so the Circle knows",
-          ].map((perk) => (
+          {[t("paywall.perk1"), t("paywall.perk2"), t("paywall.perk3")].map((perk) => (
             <li key={perk} className="py-3 text-small text-ink-700">
               {perk}
             </li>
@@ -138,7 +137,7 @@ export default function GoldCirclePaywall({
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <TextInput
-            label="Card number"
+            label={t("paywall.cardNumber")}
             mono
             placeholder="4242 4242 4242 4242"
             value={cardNumber}
@@ -149,7 +148,7 @@ export default function GoldCirclePaywall({
           />
           <div className="grid grid-cols-2 gap-4">
             <TextInput
-              label="Expiry"
+              label={t("paywall.expiry")}
               mono
               placeholder="MM / YY"
               value={expiry}
@@ -159,7 +158,7 @@ export default function GoldCirclePaywall({
               required
             />
             <TextInput
-              label="CVC"
+              label={t("paywall.cvc")}
               mono
               placeholder="•••"
               value={cvc}
@@ -187,8 +186,8 @@ export default function GoldCirclePaywall({
                 transition={{ duration: 0.2 }}
               >
                 {phase === "success"
-                  ? "Welcome to the Gold Circle"
-                  : `Join the Gold Circle: ${TIER_PRICE[tier]}`}
+                  ? t("paywall.welcome")
+                  : t("paywall.join", { price: TIER_PRICE[tier] })}
               </motion.span>
             </span>
           </PressButton>
@@ -196,9 +195,7 @@ export default function GoldCirclePaywall({
 
         <Rule className="mt-6" />
         <p className="mt-4 text-center font-mono text-eyebrow text-ink-500">
-          This is a demo paywall for a satirical app. No card is real, no
-          payment is processed, and nothing is charged. Any details entered
-          here go nowhere.
+          {t("paywall.disclaimer")}
         </p>
       </div>
     </Modal>

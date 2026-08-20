@@ -29,7 +29,7 @@ export default function SessionDetailModal({
   onClose: () => void;
   onShare?: (sessionId: number) => void;
 }) {
-  const { t } = useLanguage();
+  const { t, tEnum } = useLanguage();
   const [data, setData] = useState<SessionDetailResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,16 +131,16 @@ export default function SessionDetailModal({
                         className="h-2.5 w-2.5 rounded-full ring-1 ring-rule-strong"
                         style={{ backgroundColor: COLOR_SWATCHES[session.color] }}
                       />
-                      {COLOR_LABELS[session.color]}
+                      {tEnum("color", session.color, COLOR_LABELS[session.color])}
                     </span>
                   }
                 />
               ) : null}
               {session.odor ? (
-                <DetailField label={t("session.odor")} value={ODOR_LABELS[session.odor]} />
+                <DetailField label={t("session.odor")} value={tEnum("odor", session.odor, ODOR_LABELS[session.odor])} />
               ) : null}
               {session.pain ? (
-                <DetailField label={t("session.pain")} value={PAIN_LABELS[session.pain]} />
+                <DetailField label={t("session.pain")} value={tEnum("pain", session.pain, PAIN_LABELS[session.pain])} />
               ) : null}
               {session.visibleFood ? (
                 <DetailField label={t("session.visibleFood")} value={t("common.yes")} />
@@ -163,7 +163,7 @@ export default function SessionDetailModal({
                       key={s}
                       className="rounded-pill bg-paper-sunk px-3 py-1 text-small text-ink-700 ring-1 ring-rule"
                     >
-                      {SYMPTOM_LABELS[s] || s}
+                      {tEnum("symptom", s, SYMPTOM_LABELS[s] || s)}
                     </span>
                   ))}
                 </div>

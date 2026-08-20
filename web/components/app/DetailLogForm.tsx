@@ -20,31 +20,31 @@ import {
 } from "@/lib/enums";
 import type { ColorValue, OdorValue, PainValue } from "@/lib/enums";
 import type { SessionCreateBody, SessionCreateResponse } from "@/lib/types";
-
-const COLOR_OPTIONS = [
-  { value: "", label: "Not set" },
-  ...COLORS.map((c) => ({
-    value: c,
-    label: COLOR_LABELS[c],
-    swatch: COLOR_SWATCHES[c],
-  })),
-];
-
-const ODOR_OPTIONS = [
-  { value: "", label: "Not set" },
-  ...ODORS.map((o) => ({ value: o, label: ODOR_LABELS[o] })),
-];
-
-const PAIN_OPTIONS = [
-  { value: "", label: "Not set" },
-  ...PAIN_LEVELS.map((p) => ({ value: p, label: PAIN_LABELS[p] })),
-];
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function DetailLogForm({
   onSuccess,
 }: {
   onSuccess: (response: SessionCreateResponse) => void;
 }) {
+  const { t, tEnum } = useLanguage();
+  const COLOR_OPTIONS = [
+    { value: "", label: t("log.notSet") },
+    ...COLORS.map((c) => ({
+      value: c,
+      label: tEnum("color", c, COLOR_LABELS[c]),
+      swatch: COLOR_SWATCHES[c],
+    })),
+  ];
+  const ODOR_OPTIONS = [
+    { value: "", label: t("log.notSet") },
+    ...ODORS.map((o) => ({ value: o, label: tEnum("odor", o, ODOR_LABELS[o]) })),
+  ];
+  const PAIN_OPTIONS = [
+    { value: "", label: t("log.notSet") },
+    ...PAIN_LEVELS.map((p) => ({ value: p, label: tEnum("pain", p, PAIN_LABELS[p]) })),
+  ];
+
   const [bristolType, setBristolType] = useState<number | null>(null);
   const [color, setColor] = useState<ColorValue | "">("");
   const [odor, setOdor] = useState<OdorValue | "">("");
@@ -112,7 +112,7 @@ export default function DetailLogForm({
       onSuccess(response);
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : "Could not save this session."
+        err instanceof ApiError ? err.message : t("log.saveError")
       );
     } finally {
       setSubmitting(false);
@@ -123,26 +123,26 @@ export default function DetailLogForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div>
         <p className="mb-2 text-small font-medium text-ink-700">
-          Type Bristol
+          {t("log.bristolType")}
         </p>
         <BristolPicker value={bristolType} onChange={setBristolType} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <SelectField
-          label="Couleur"
+          label={t("session.color")}
           options={COLOR_OPTIONS}
           value={color}
           onChange={(e) => setColor(e.target.value as ColorValue | "")}
         />
         <SelectField
-          label="Odeur"
+          label={t("session.odor")}
           options={ODOR_OPTIONS}
           value={odor}
           onChange={(e) => setOdor(e.target.value as OdorValue | "")}
         />
         <SelectField
-          label="Douleur ou effort"
+          label={t("log.pain")}
           options={PAIN_OPTIONS}
           value={pain}
           onChange={(e) => setPain(e.target.value as PainValue | "")}
@@ -151,7 +151,7 @@ export default function DetailLogForm({
 
       <div className="flex flex-col gap-3">
         <Checkbox
-          label="Visible undigested food"
+          label={t("session.visibleFood")}
           checked={visibleFood}
           onChange={(e) => setVisibleFood(e.target.checked)}
         />
@@ -162,7 +162,7 @@ export default function DetailLogForm({
           ].join(" ")}
         >
           <Checkbox
-            label="Blood present"
+            label={t("log.bloodPresent")}
             checked={bloodFlag}
             onChange={(e) => setBloodFlag(e.target.checked)}
           />
@@ -176,7 +176,7 @@ export default function DetailLogForm({
                 className="overflow-hidden"
               >
                 <p className="mt-2 font-mono text-small text-claret-600">
-                  Flagged sessions appear in your doctor export.
+                  {t("log.bloodFlaggedNote")}
                 </p>
               </motion.div>
             ) : null}
@@ -197,7 +197,7 @@ export default function DetailLogForm({
       {error ? <p className="text-small text-claret-600">{error}</p> : null}
 
       <PressButton type="submit" disabled={submitting}>
-        {submitting ? "Saving…" : "Save Details"}
+        {submitting ? t("log.saving") : t("log.saveDetails")}
       </PressButton>
     </form>
   );

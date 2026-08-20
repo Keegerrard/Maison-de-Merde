@@ -13,6 +13,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/useToast";
 import { BANNERS } from "@/lib/enums";
 import { drawProfileCard } from "@/lib/profileCard";
+import { apiFetch, ApiError } from "@/lib/api";
+import type { ChangeUsernameResponse } from "@/lib/types";
 
 export default function ProfileModal({
   open,
@@ -21,9 +23,9 @@ export default function ProfileModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const { t } = useLanguage();
+  const { t, tBadge } = useLanguage();
   const { toast } = useToast();
-  const { profile, loading, update } = useProfile();
+  const { profile, loading, update, refresh } = useProfile();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [nickname, setNickname] = useState("");
@@ -32,6 +34,12 @@ export default function ProfileModal({
   const [isPublic, setIsPublic] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+
+  const [showUsernameForm, setShowUsernameForm] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [usernamePassword, setUsernamePassword] = useState("");
+  const [usernameSaving, setUsernameSaving] = useState(false);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -58,6 +66,27 @@ export default function ProfileModal({
     }
   }
 
+  async function handleChangeUsername() {
+    setUsernameError(null);
+    setUsernameSaving(true);
+    try {
+      const res = await apiFetch<ChangeUsernameResponse>("/api/auth/username", {
+        method: "PATCH",
+        body: { newUsername, password: usernamePassword },
+      });
+      toast(t("account.usernameUpdated"), "success");
+      setUsernamePassword("");
+      setNewUsername("");
+      setShowUsernameForm(false);
+      await refresh();
+      void res;
+    } catch (e) {
+      setUsernameError(e instanceof ApiError ? e.message : t("account.genericError"));
+    } finally {
+      setUsernameSaving(false);
+    }
+  }
+
   function cardData() {
     if (!profile) return null;
     const trait = traitBadgeId
@@ -67,7 +96,7 @@ export default function ProfileModal({
       username: profile.username,
       nickname: nickname || null,
       banner,
-      traitName: trait?.name ?? null,
+      traitName: trait ? tBadge(trait.id, "name", trait.name) : null,
       traitIcon: trait?.icon ?? null,
       stats: profile.stats,
       badgeIcons: profile.unlockedBadges.map((b) => b.icon),
@@ -138,7 +167,10 @@ export default function ProfileModal({
                   {traitBadgeId ? (
                     <span className="text-small text-white/90">
                       {profile.unlockedBadges.find((b) => b.id === traitBadgeId)?.icon}{" "}
-                      {profile.unlockedBadges.find((b) => b.id === traitBadgeId)?.name}
+                      {(() => {
+                        const trait = profile.unlockedBadges.find((b) => b.id === traitBadgeId);
+                        return trait ? tBadge(trait.id, "name", trait.name) : null;
+                      })()}
                     </span>
                   ) : null}
                 </div>
@@ -222,7 +254,7 @@ export default function ProfileModal({
                           : "bg-paper-sunk text-ink-700 ring-rule",
                       ].join(" ")}
                     >
-                      {b.icon} {b.name}
+                      {b.icon} {tBadge(b.id, "name", b.name)}
                     </button>
                   ))}
                 </div>
@@ -244,6 +276,69 @@ export default function ProfileModal({
                 {saving ? <Icon name="Loader2" size={16} className="animate-spin" /> : null}
                 {t("common.save")}
               </PressButton>
+
+              <Rule />
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-small font-medium text-ink-700">{t("account.username")}</p>
+                  {!showUsernameForm ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUsernameForm(true);
+                        setNewUsername(profile.username);
+                        setUsernameError(null);
+                      }}
+                      className="text-small text-ink-500 underline-offset-2 [@media(hover:hover)_and_(pointer:fine)]:hover:underline"
+                    >
+                      {t("account.changeUsername")}
+                    </button>
+                  ) : null}
+                </div>
+
+                {!showUsernameForm ? (
+                  <p className="text-small text-ink-500">@{profile.username}</p>
+                ) : (
+                  <div className="flex flex-col gap-3 rounded-core-sm bg-paper-sunk p-3.5">
+                    <TextInput
+                      label={t("account.newUsername")}
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value.slice(0, 24))}
+                    />
+                    <TextInput
+                      label={t("account.currentPassword")}
+                      type="password"
+                      value={usernamePassword}
+                      onChange={(e) => setUsernamePassword(e.target.value)}
+                    />
+                    {usernameError ? <p className="text-small text-claret-600">{usernameError}</p> : null}
+                    <div className="flex gap-2">
+                      <PressButton
+                        type="button"
+                        onClick={handleChangeUsername}
+                        disabled={usernameSaving || !newUsername || !usernamePassword}
+                        className="flex-1"
+                      >
+                        {usernameSaving ? <Icon name="Loader2" size={16} className="animate-spin" /> : null}
+                        {t("common.save")}
+                      </PressButton>
+                      <PressButton
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          setShowUsernameForm(false);
+                          setUsernameError(null);
+                          setUsernamePassword("");
+                        }}
+                        className="flex-1"
+                      >
+                        {t("common.cancel")}
+                      </PressButton>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

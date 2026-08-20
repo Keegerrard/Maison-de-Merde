@@ -7,6 +7,7 @@ import Checkbox from "../ui/Checkbox";
 import AiSuggestionNote from "./AiSuggestionNote";
 import { apiFetch, ApiError } from "@/lib/api";
 import { EASE, SPRING } from "@/lib/motion";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { ColorValue } from "@/lib/enums";
 import type { VisionResponse } from "@/lib/types";
 
@@ -34,6 +35,7 @@ export default function PhotoField({
     keepPhoto: boolean;
   }) => void;
 }) {
+  const { t } = useLanguage();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [keepPhoto, setKeepPhoto] = useState(false);
@@ -112,10 +114,10 @@ export default function PhotoField({
         </span>
         <span className="flex flex-col gap-0.5">
           <span className="text-small font-medium text-ink-900">
-            Photographie (optionnelle)
+            {t("photo.label")}
           </span>
           <span className="text-small text-ink-500">
-            Sent once for analysis. Not stored unless you tick keep.
+            {t("photo.hint")}
           </span>
         </span>
       </button>
@@ -157,7 +159,7 @@ export default function PhotoField({
 
       {preview ? (
         <Checkbox
-          label="Keep this photo (off by default)"
+          label={t("photo.keep")}
           checked={keepPhoto}
           onChange={(e) => handleKeepPhotoChange(e.target.checked)}
         />

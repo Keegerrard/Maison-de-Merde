@@ -7,6 +7,7 @@ import PressButton from "../ui/PressButton";
 import DetailLogForm from "./DetailLogForm";
 import { apiFetch, ApiError } from "@/lib/api";
 import { EASE, SPRING } from "@/lib/motion";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { SessionCreateResponse } from "@/lib/types";
 
 export default function QuickLogCard({
@@ -14,6 +15,7 @@ export default function QuickLogCard({
 }: {
   onLogged: (response: SessionCreateResponse) => void;
 }) {
+  const { t } = useLanguage();
   const [detailOpen, setDetailOpen] = useState(false);
   const [quickSubmitting, setQuickSubmitting] = useState(false);
   const [quickError, setQuickError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export default function QuickLogCard({
       onLogged(response);
     } catch (err) {
       setQuickError(
-        err instanceof ApiError ? err.message : "Could not save this session."
+        err instanceof ApiError ? err.message : t("log.saveError")
       );
     } finally {
       setQuickSubmitting(false);
@@ -39,10 +41,10 @@ export default function QuickLogCard({
   return (
     <DoubleBezelCard>
       <h2 className="font-display text-title text-ink-900">
-        Log a session.
+        {t("log.title")}
       </h2>
       <p className="mt-2 max-w-[46ch] text-body text-ink-500">
-        One tap records it now. Details can follow, or not.
+        {t("log.subtitle")}
       </p>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -53,7 +55,7 @@ export default function QuickLogCard({
           disabled={quickSubmitting}
           onClick={handleQuickLog}
         >
-          Save Now
+          {t("log.saveNow")}
         </PressButton>
         <PressButton
           type="button"
@@ -62,7 +64,7 @@ export default function QuickLogCard({
           className="sm:w-auto"
           onClick={() => setDetailOpen((v) => !v)}
         >
-          Add Details
+          {t("log.addDetails")}
         </PressButton>
       </div>
 

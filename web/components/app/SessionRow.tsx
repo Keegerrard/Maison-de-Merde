@@ -14,7 +14,7 @@ export default function SessionRow({
   session: SessionRowType;
   onClick?: () => void;
 }) {
-  const { t } = useLanguage();
+  const { t, tEnum } = useLanguage();
   return (
     <div
       role={onClick ? "button" : undefined}
@@ -64,7 +64,7 @@ export default function SessionRow({
               style={{ backgroundColor: COLOR_SWATCHES[session.color] }}
               aria-hidden="true"
             />
-            {COLOR_LABELS[session.color]}
+            {tEnum("color", session.color, COLOR_LABELS[session.color])}
           </span>
         ) : null}
 

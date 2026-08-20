@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useLanguage } from "@/hooks/useLanguage";
 import DoubleBezelCard from "../ui/DoubleBezelCard";
 import Reveal from "../ui/Reveal";
 
@@ -36,6 +37,7 @@ interface Cell {
 }
 
 export default function ConsistencyHeatmap() {
+  const { t } = useLanguage();
   const { data } = useDashboard();
   const entries = data?.heatmap ?? [];
 
@@ -72,10 +74,10 @@ export default function ConsistencyHeatmap() {
     <DoubleBezelCard className="h-full" coreClassName="flex h-full flex-col gap-5">
       <div>
         <p className="font-mono text-eyebrow uppercase text-ink-500">
-          Consistency
+          {t("heatmap.eyebrow")}
         </p>
         <h3 className="mt-1 font-display text-title text-ink-900">
-          The last 91 days.
+          {t("heatmap.title")}
         </h3>
       </div>
 
@@ -105,7 +107,7 @@ export default function ConsistencyHeatmap() {
       </Reveal>
 
       <div className="mt-auto flex items-center gap-2 font-mono text-small text-ink-500">
-        <span>Moins</span>
+        <span>{t("heatmap.less")}</span>
         {LEVEL_COLORS.map((color) => (
           <span
             key={color}
@@ -113,7 +115,7 @@ export default function ConsistencyHeatmap() {
             style={{ backgroundColor: color }}
           />
         ))}
-        <span>Plus</span>
+        <span>{t("heatmap.more")}</span>
       </div>
     </DoubleBezelCard>
   );

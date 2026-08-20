@@ -6,6 +6,7 @@ import PressButton from "../ui/PressButton";
 import Icon from "../ui/Icon";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useToast } from "@/hooks/useToast";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function AddFriendField({
   onAdded,
@@ -13,6 +14,7 @@ export default function AddFriendField({
   onAdded: () => Promise<void>;
 }) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -31,18 +33,18 @@ export default function AddFriendField({
       });
       setUsername("");
       await onAdded();
-      toast("Friend request sent.");
+      toast(t("friend.sent"));
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 404) {
-          setError("No account with that name.");
+          setError(t("friend.notFound"));
         } else if (err.status === 400) {
-          setError("You cannot add yourself.");
+          setError(t("friend.cannotAddSelf"));
         } else {
           setError(err.message);
         }
       } else {
-        setError("Failed to send request.");
+        setError(t("friend.failed"));
       }
     } finally {
       setSubmitting(false);
@@ -54,12 +56,12 @@ export default function AddFriendField({
       <div className="flex flex-col items-end gap-3 sm:flex-row">
         <div className="w-full flex-1">
           <TextInput
-            label="Ajouter par nom d'utilisateur"
+            label={t("friend.addByUsername")}
             mono
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             error={error ?? undefined}
-            placeholder="nom_utilisateur"
+            placeholder={t("friend.usernamePlaceholder")}
             autoComplete="off"
           />
         </div>
@@ -74,7 +76,7 @@ export default function AddFriendField({
           ) : (
             <Icon name="UserPlus" size={16} />
           )}
-          Ajouter
+          {t("friend.addButton")}
         </PressButton>
       </div>
     </form>

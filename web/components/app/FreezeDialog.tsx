@@ -8,6 +8,7 @@ import TextInput from "../ui/TextInput";
 import { apiFetch } from "@/lib/api";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useToast } from "@/hooks/useToast";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { FreezeResponse } from "@/lib/types";
 
 const PRESETS = [3, 7, 14, 30];
@@ -19,6 +20,7 @@ export default function FreezeDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
   const { refresh } = useDashboard();
   const { toast } = useToast();
   const [custom, setCustom] = useState("");
@@ -42,10 +44,10 @@ export default function FreezeDialog({
         body: { days },
       });
       await refresh();
-      toast(`Streak frozen for ${days} day${days === 1 ? "" : "s"}.`, "success");
+      toast(t("freeze.success", { days }), "success");
       onClose();
     } catch {
-      setError("Failed to freeze streak. Try again.");
+      setError(t("freeze.error"));
     } finally {
       setSubmitting(false);
     }
@@ -54,27 +56,27 @@ export default function FreezeDialog({
   function handleCustomSubmit() {
     const n = parseInt(custom, 10);
     if (!n || n < 1 || n > 60) {
-      setError("Enter a number of days between 1 and 60.");
+      setError(t("freeze.rangeError"));
       return;
     }
     submitFreeze(n);
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Freeze the Streak">
+    <Modal open={open} onClose={onClose} title={t("freeze.title")}>
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="font-mono text-eyebrow uppercase text-ink-300">
-            Gold Circle
+            {t("freeze.badge")}
           </p>
           <h2 className="mt-1 font-display text-title text-ink-900">
-            Freeze the Streak
+            {t("freeze.title")}
           </h2>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t("freeze.close")}
           className="rounded-pill p-1.5 text-ink-500 transition-transform duration-[140ms] ease-out active:scale-[0.9] [@media(hover:hover)_and_(pointer:fine)]:hover:text-ink-900"
         >
           <Icon name="X" size={18} />
@@ -82,8 +84,7 @@ export default function FreezeDialog({
       </div>
 
       <p className="mb-6 text-body text-ink-500">
-        Choose the number of days to freeze. The streak will not break
-        while it&apos;s frozen.
+        {t("freeze.description")}
       </p>
 
       <div className="mb-6 grid grid-cols-4 gap-2">
@@ -102,7 +103,7 @@ export default function FreezeDialog({
 
       <div className="flex items-end gap-3">
         <TextInput
-          label="Custom days (1–60)"
+          label={t("freeze.customLabel")}
           type="number"
           min={1}
           max={60}
@@ -119,7 +120,7 @@ export default function FreezeDialog({
           onClick={handleCustomSubmit}
         >
           <Icon name="Snowflake" size={16} />
-          Confirm
+          {t("freeze.confirm")}
         </PressButton>
       </div>
     </Modal>

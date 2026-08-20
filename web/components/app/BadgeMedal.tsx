@@ -3,6 +3,7 @@ import Icon from "@/components/ui/Icon";
 import Reveal from "@/components/ui/Reveal";
 import Rule from "@/components/ui/Rule";
 import { BADGE_ICON_MAP, getBadgeIcon } from "@/lib/badgeIcons";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { Badge } from "@/lib/types";
 
 // One badge tile. The grid that lays these out lives in BadgeGrid.tsx.
@@ -13,9 +14,12 @@ export default function BadgeMedal({
   badge: Badge;
   delay?: number;
 }) {
+  const { t, tBadge } = useLanguage();
   const unlocked = badge.unlocked;
   const known = Boolean(BADGE_ICON_MAP[badge.id]);
   const { icon, numeral } = getBadgeIcon(badge.id);
+  const name = tBadge(badge.id, "name", badge.name);
+  const desc = tBadge(badge.id, "desc", badge.desc);
 
   return (
     <Reveal delay={delay}>
@@ -48,7 +52,7 @@ export default function BadgeMedal({
           </p>
 
           <p className={["font-display text-lede text-ink-900", unlocked ? "" : "opacity-40"].join(" ")}>
-            {badge.name}
+            {name}
             {!known ? (
               <span aria-hidden="true" className="ml-1">
                 {badge.icon}
@@ -57,12 +61,12 @@ export default function BadgeMedal({
           </p>
 
           {/* Unlock condition stays fully legible even when locked. */}
-          <p className="text-small text-ink-500">{badge.desc}</p>
+          <p className="text-small text-ink-500">{desc}</p>
 
           {unlocked ? (
             <div className="mt-auto flex flex-col gap-2 pt-1">
               <Rule />
-              <p className="font-mono text-eyebrow uppercase text-ink-500">Obtenue</p>
+              <p className="font-mono text-eyebrow uppercase text-ink-500">{t("achievements.unlocked")}</p>
             </div>
           ) : null}
         </div>

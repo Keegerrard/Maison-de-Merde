@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Icon from "../ui/Icon";
 import { formatPercent, initialOf } from "@/lib/format";
 import { SPRING } from "@/lib/motion";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { LeaderboardEntry } from "@/lib/types";
 
 export default function LeaderboardRow({
@@ -17,6 +18,7 @@ export default function LeaderboardRow({
   index: number;
   onChat?: () => void;
 }) {
+  const { t } = useLanguage();
   const isTop = rank <= 3;
 
   return (
@@ -56,11 +58,11 @@ export default function LeaderboardRow({
         <p className="truncate text-small font-medium text-ink-900">
           {entry.username}
           {entry.isMe ? (
-            <span className="ml-1 font-mono text-ink-500">(you)</span>
+            <span className="ml-1 font-mono text-ink-500">{t("circle.you")}</span>
           ) : null}
         </p>
         <p className="mt-0.5 font-mono text-small text-ink-500">
-          {entry.streak}d · {formatPercent(entry.consistency)} consistency
+          {t("circle.streakLine", { streak: entry.streak, percent: formatPercent(entry.consistency) })}
         </p>
         <div className="mt-2 h-px w-full bg-rule">
           <motion.div
@@ -77,7 +79,7 @@ export default function LeaderboardRow({
         <button
           type="button"
           onClick={onChat}
-          aria-label={`Chat with ${entry.username}`}
+          aria-label={`${t("chat.title")} — ${entry.username}`}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-pill ring-1 ring-rule [@media(hover:hover)_and_(pointer:fine)]:hover:bg-paper-sunk"
         >
           <Icon name="MessageCircle" size={15} className="text-ink-500" />

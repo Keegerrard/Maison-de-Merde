@@ -6,8 +6,10 @@ import DoubleBezelCard from "../ui/DoubleBezelCard";
 import EmptyState from "../ui/EmptyState";
 import { BRISTOL_COLORS, BRISTOL_PATHS } from "@/lib/bristol";
 import { EASE } from "@/lib/motion";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function BristolDistribution() {
+  const { t } = useLanguage();
   const { data } = useDashboard();
   const counts = data?.bristolCounts ?? [0, 0, 0, 0, 0, 0, 0];
   const max = counts.reduce((m, c) => Math.max(m, c), 0);
@@ -16,10 +18,10 @@ export default function BristolDistribution() {
   return (
     <DoubleBezelCard>
       <p className="font-mono text-eyebrow uppercase text-ink-500">
-        Bristol Scale
+        {t("bristol.eyebrow")}
       </p>
       <h3 className="mb-6 mt-1 font-display text-title text-ink-900">
-        Type distribution.
+        {t("bristol.title")}
       </h3>
 
       <div className="flex flex-col gap-2.5">
@@ -67,7 +69,7 @@ export default function BristolDistribution() {
               </div>
               {i === 3 ? (
                 <p className="mb-1 mt-1 pl-9 font-mono text-[0.625rem] uppercase tracking-[0.16em] text-sage-600">
-                  Types 3-4, typical range
+                  {t("bristol.typicalRange")}
                 </p>
               ) : null}
             </div>
@@ -75,7 +77,7 @@ export default function BristolDistribution() {
         })}
       </div>
 
-      {allZero ? <EmptyState message="No typed entries yet." /> : null}
+      {allZero ? <EmptyState message={t("bristol.empty")} /> : null}
     </DoubleBezelCard>
   );
 }

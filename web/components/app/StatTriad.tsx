@@ -4,6 +4,7 @@ import Icon from "../ui/Icon";
 import DoubleBezelCard from "../ui/DoubleBezelCard";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useLanguage } from "@/hooks/useLanguage";
 
 function StatCell({ label, value }: { label: string; value: number }) {
   const ref = useCountUp(value);
@@ -23,6 +24,7 @@ function StatCell({ label, value }: { label: string; value: number }) {
 }
 
 export default function StatTriad() {
+  const { t } = useLanguage();
   const { data } = useDashboard();
   const current = data?.streak.current ?? 0;
   const longest = data?.streak.longest ?? 0;
@@ -36,16 +38,16 @@ export default function StatTriad() {
     <DoubleBezelCard padding="none">
       <div className="grid grid-cols-3 divide-x divide-rule">
         <div>
-          <StatCell label="Current Streak" value={current} />
+          <StatCell label={t("streak.current")} value={current} />
           {frozen && data?.streakFreezeUntil ? (
             <div className="-mt-3 flex items-center justify-center gap-1.5 pb-5 font-mono text-small text-sage-600">
               <Icon name="Snowflake" size={13} />
-              <span>Frozen until {data.streakFreezeUntil}</span>
+              <span>{t("streak.frozenUntil", { date: data.streakFreezeUntil })}</span>
             </div>
           ) : null}
         </div>
-        <StatCell label="Record" value={longest} />
-        <StatCell label="Grace Tokens" value={grace} />
+        <StatCell label={t("streak.record")} value={longest} />
+        <StatCell label={t("streak.graceTokens")} value={grace} />
       </div>
     </DoubleBezelCard>
   );

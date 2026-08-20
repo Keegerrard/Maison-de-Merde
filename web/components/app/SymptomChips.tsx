@@ -2,6 +2,7 @@
 
 import Chip from "../ui/Chip";
 import { SYMPTOMS } from "@/lib/enums";
+import { useLanguage } from "@/hooks/useLanguage";
 
 // Client-side convention only (§0.3) — the server accepts any string[],
 // truncated to 10. These four chips are what the UI offers; the cap is
@@ -15,6 +16,8 @@ export default function SymptomChips({
   value: string[];
   onChange: (value: string[]) => void;
 }) {
+  const { tEnum } = useLanguage();
+
   function toggle(symptom: string) {
     if (value.includes(symptom)) {
       onChange(value.filter((v) => v !== symptom));
@@ -29,7 +32,7 @@ export default function SymptomChips({
         <Chip
           key={symptom.value}
           type="button"
-          label={symptom.label}
+          label={tEnum("symptom", symptom.value, symptom.label)}
           selected={value.includes(symptom.value)}
           onClick={() => toggle(symptom.value)}
         />

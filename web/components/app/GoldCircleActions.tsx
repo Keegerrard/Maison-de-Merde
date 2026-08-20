@@ -5,39 +5,33 @@ import Icon from "../ui/Icon";
 import PressButton from "../ui/PressButton";
 import { usePremium } from "@/hooks/usePremium";
 import { useToast } from "@/hooks/useToast";
+import { useLanguage } from "@/hooks/useLanguage";
 import FreezeDialog from "./FreezeDialog";
 
 const GOLD_TAG =
   "rounded-pill bg-ink-900 px-2.5 py-1 font-mono text-[0.625rem] uppercase tracking-[0.16em] text-paper";
 
 export default function GoldCircleActions() {
+  const { t } = useLanguage();
   const { gateWithPaywall } = usePremium();
   const { toast } = useToast();
   const [freezeOpen, setFreezeOpen] = useState(false);
 
   function handleFreeze() {
-    gateWithPaywall(
-      "Streak Freeze is a privilege of the Gold Circle.",
-      () => setFreezeOpen(true)
-    );
+    gateWithPaywall(t("gold.freezeReason"), () => setFreezeOpen(true));
   }
 
   function handleRecover() {
-    gateWithPaywall(
-      "Recovering a missed day is a privilege of the Gold Circle.",
-      () => {
-        toast(
-          "A member of our staff has been dispatched to discreetly recover your missed day."
-        );
-      }
-    );
+    gateWithPaywall(t("gold.recoverReason"), () => {
+      toast(t("gold.recoverToast"));
+    });
   }
 
   return (
     <>
       <div className="rounded-shell bg-paper-sunk p-5 ring-1 ring-rule md:p-6">
         <p className="mb-4 font-mono text-eyebrow uppercase text-ink-300">
-          Reserved for Gold Circle members
+          {t("gold.reserved")}
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <PressButton
@@ -49,9 +43,9 @@ export default function GoldCircleActions() {
             <span className="flex w-full items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Icon name="Lock" size={16} strokeWidth={1.25} />
-                Freeze the Streak
+                {t("gold.freezeStreak")}
               </span>
-              <span className={GOLD_TAG}>Gold</span>
+              <span className={GOLD_TAG}>{t("gold.tag")}</span>
             </span>
           </PressButton>
           <PressButton
@@ -63,9 +57,9 @@ export default function GoldCircleActions() {
             <span className="flex w-full items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Icon name="Lock" size={16} strokeWidth={1.25} />
-                Recover a Missed Day
+                {t("gold.recoverDay")}
               </span>
-              <span className={GOLD_TAG}>Gold</span>
+              <span className={GOLD_TAG}>{t("gold.tag")}</span>
             </span>
           </PressButton>
         </div>

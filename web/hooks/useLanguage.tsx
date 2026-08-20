@@ -9,7 +9,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { LANGUAGES, translate, type LangCode } from "@/lib/i18n/translations";
+import {
+  LANGUAGES,
+  translate,
+  translateEnumLabel,
+  translateBadgeText,
+  type LangCode,
+} from "@/lib/i18n/translations";
 
 const STORAGE_KEY = "mdm_lang";
 
@@ -17,6 +23,12 @@ interface LanguageContextValue {
   lang: LangCode;
   setLang: (lang: LangCode) => void;
   t: (key: string, replacements?: Record<string, string | number>) => string;
+  tEnum: (
+    category: "color" | "odor" | "pain" | "symptom",
+    value: string,
+    fallback: string
+  ) => string;
+  tBadge: (badgeId: string, field: "name" | "desc", fallback: string) => string;
   dir: "ltr" | "rtl";
 }
 
@@ -53,7 +65,22 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     [lang]
   );
 
-  const value = useMemo(() => ({ lang, setLang, t, dir }), [lang, setLang, t, dir]);
+  const tEnum = useCallback(
+    (category: "color" | "odor" | "pain" | "symptom", value: string, fallback: string) =>
+      translateEnumLabel(lang, category, value, fallback),
+    [lang]
+  );
+
+  const tBadge = useCallback(
+    (badgeId: string, field: "name" | "desc", fallback: string) =>
+      translateBadgeText(lang, badgeId, field, fallback),
+    [lang]
+  );
+
+  const value = useMemo(
+    () => ({ lang, setLang, t, tEnum, tBadge, dir }),
+    [lang, setLang, t, tEnum, tBadge, dir]
+  );
 
   return (
     <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
