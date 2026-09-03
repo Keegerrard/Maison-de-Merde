@@ -3,6 +3,7 @@ import FloatingNav from "@/components/landing/FloatingNav";
 import ScrollTrailRail from "@/components/landing/ScrollTrailRail";
 import ScrollDescentHero from "@/components/landing/ScrollDescentHero";
 import IntroSection from "@/components/landing/IntroSection";
+import TunnelDescentSection from "@/components/landing/TunnelDescentSection";
 import ManifestoStatement from "@/components/landing/ManifestoStatement";
 import ServicesList from "@/components/landing/ServicesList";
 import SubsystemGrid from "@/components/landing/SubsystemGrid";
@@ -25,6 +26,7 @@ export default function LandingPage() {
       <main>
         <ScrollDescentHero />
         <IntroSection />
+        <TunnelDescentSection />
         <ManifestoStatement />
         <ServicesList />
         <SubsystemGrid />
