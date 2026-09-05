@@ -17,7 +17,7 @@ export default function SpecimenCard() {
             07:14 &middot; TUESDAY
           </span>
           <span
-            className="inline-flex items-center gap-1.5 rounded-pill px-3 py-1 font-mono text-eyebrow uppercase tracking-[0.22em] text-paper"
+            className="inline-flex items-center gap-1.5 rounded-pill px-3 py-1 font-mono text-eyebrow uppercase tracking-[0.22em] text-ink-900"
             style={{ backgroundColor: BRISTOL_COLORS[3] }}
           >
             04 &middot; {BRISTOL_LABELS[3]}

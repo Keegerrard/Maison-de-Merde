@@ -3,35 +3,35 @@
 @tailwind utilities;
 
 :root {
-  /* Surfaces */
-  --paper: #f6f2ea;
-  --paper-raised: #fbf8f2;
-  --paper-sunk: #ede7dc;
-  --paper-deep: #e4dccd;
+  /* Surfaces — warm near-black, not pure #000 */
+  --paper: #14110f;
+  --paper-raised: #221c17;
+  --paper-sunk: #0d0a08;
+  --paper-deep: #080706;
 
-  /* Ink */
-  --ink-900: #14110f;
-  --ink-700: #3a332c;
-  --ink-500: #6b6157;
-  --ink-300: #9c9187;
-  --rule: rgba(20, 17, 15, 0.1);
-  --rule-strong: rgba(20, 17, 15, 0.18);
-  --shadow-ambient: 0 24px 60px -30px rgba(20, 17, 15, 0.28);
-  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  /* Ink — warm cream down to muted taupe */
+  --ink-900: #f6f2ea;
+  --ink-700: #d6cdbf;
+  --ink-500: #a89b8b;
+  --ink-300: #6b6157;
+  --rule: rgba(246, 242, 234, 0.12);
+  --rule-strong: rgba(246, 242, 234, 0.24);
+  --shadow-ambient: 0 24px 60px -24px rgba(0, 0, 0, 0.65);
+  --shadow-inner: inset 0 1px 0 rgba(246, 242, 234, 0.07);
 
-  /* Accent — clinical sage */
-  --sage-700: #3f5646;
+  /* Accent — clinical sage, deepened for dark surfaces */
+  --sage-700: #2b3a30;
   --sage-600: #4f6b57;
-  --sage-500: #5f7f68;
-  --sage-200: #c6d5cb;
-  --sage-100: #dde6df;
+  --sage-500: #74947e;
+  --sage-200: #6f8577;
+  --sage-100: #263129;
 
-  /* Signal — claret */
-  --claret-600: #8a2e39;
-  --claret-200: #e4c4c8;
-  --claret-100: #f2e2e4;
+  /* Signal — claret, lifted for contrast on dark */
+  --claret-600: #c85b67;
+  --claret-200: #4a1e24;
+  --claret-100: #331519;
 
-  /* Bristol ramp — diverging, anchored at Type 4 */
+  /* Bristol ramp — diverging, anchored at Type 4 (unchanged: literal specimen colors) */
   --bristol-1: #c9b79a;
   --bristol-2: #b79e7c;
   --bristol-3: #a5875f;
@@ -52,7 +52,7 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 * {

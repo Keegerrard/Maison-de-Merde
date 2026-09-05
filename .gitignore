@@ -7,3 +7,4 @@ web/tsconfig.tsbuildinfo
 server/public/
 server/data/
 .DS_Store
+grok-video-*.mp4
