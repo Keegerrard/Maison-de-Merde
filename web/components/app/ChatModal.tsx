@@ -70,7 +70,7 @@ export default function ChatModal({
                   className={[
                     "max-w-[80%] rounded-core-sm px-3 py-2 text-small",
                     m.isMine
-                      ? "self-end bg-sage-700 text-paper"
+                      ? "self-end bg-sage-700 text-ink-900"
                       : "self-start bg-paper-raised text-ink-900 ring-1 ring-rule",
                   ].join(" ")}
                 >
@@ -78,7 +78,7 @@ export default function ChatModal({
                   <p
                     className={[
                       "mt-1 font-mono text-[10px] uppercase tracking-[0.08em]",
-                      m.isMine ? "text-paper/70" : "text-ink-300",
+                      m.isMine ? "text-ink-900/70" : "text-ink-300",
                     ].join(" ")}
                   >
                     {formatSessionTime(m.created_at)}
@@ -100,7 +100,7 @@ export default function ChatModal({
             type="submit"
             disabled={sending || !draft.trim()}
             aria-label={t("common.send")}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-sage-700 text-paper transition-transform duration-[140ms] active:scale-[0.94] disabled:opacity-40"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-sage-700 text-ink-900 transition-transform duration-[140ms] active:scale-[0.94] disabled:opacity-40"
           >
             <Icon name="Send" size={15} />
           </button>

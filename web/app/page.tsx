@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import FloatingNav from "@/components/landing/FloatingNav";
 import ScrollTrailRail from "@/components/landing/ScrollTrailRail";
+import SplashHeroSection from "@/components/landing/SplashHeroSection";
 import ScrollDescentHero from "@/components/landing/ScrollDescentHero";
 import IntroSection from "@/components/landing/IntroSection";
-import TunnelDescentSection from "@/components/landing/TunnelDescentSection";
 import ManifestoStatement from "@/components/landing/ManifestoStatement";
 import ServicesList from "@/components/landing/ServicesList";
 import SubsystemGrid from "@/components/landing/SubsystemGrid";
@@ -24,9 +24,9 @@ export default function LandingPage() {
       <FloatingNav />
       <ScrollTrailRail />
       <main>
+        <SplashHeroSection />
         <ScrollDescentHero />
         <IntroSection />
-        <TunnelDescentSection />
         <ManifestoStatement />
         <ServicesList />
         <SubsystemGrid />
