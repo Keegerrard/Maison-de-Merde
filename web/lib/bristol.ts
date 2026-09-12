@@ -63,6 +63,22 @@ export const BRISTOL_PATHS: readonly [
   "M 0 -13 C 48 -13 120 -5.2 120 0 C 120 5.2 48 13 0 13 C -48 13 -120 5.2 -120 0 C -120 -5.2 -48 -13 0 -13 Z",
 ];
 
+// One short editorial line per type, surfaced next to the hero's scroll
+// morph so the 60%+ of scroll distance spent watching the specimen change
+// shape has something to actually read at each stage, rather than feeling
+// like dead space between the intro copy and the next section.
+export const BRISTOL_HERO_BLURBS: readonly [
+  string, string, string, string, string, string, string
+] = [
+  "The far constipated end. If this is common, that's useful information.",
+  "Still firm and lumpy. Borderline — a week's pattern, not one day's.",
+  "The lower edge of normal. Slightly dry, textbook-adjacent.",
+  "The clinical median. This is what a textbook calls normal.",
+  "Soft-edged, still formed. The upper edge of normal.",
+  "Loose and ragged. Once is nothing. A pattern is a signal.",
+  "Entirely liquid. The far end — and exactly why a baseline matters.",
+];
+
 // The seven scroll-progress stops the hero's morph is keyed to (plan §B.9).
 export const MORPH_STOPS: readonly [
   number, number, number, number, number, number, number

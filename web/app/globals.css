@@ -55,6 +55,39 @@
   color-scheme: dark;
 }
 
+/* Light theme — the original committed palette before the dark redesign.
+   Toggled via [data-theme="light"] on <html>, set by hooks/useTheme.tsx.
+   Bristol ramp is intentionally NOT overridden here: it's identical in both
+   themes (see lib/bristol.ts / plan.md §B.3), a literal specimen-color scale
+   rather than a surface color, so it stays put. */
+:root[data-theme="light"] {
+  --paper: #f6f2ea;
+  --paper-raised: #fbf8f2;
+  --paper-sunk: #ede7dc;
+  --paper-deep: #e4dccd;
+
+  --ink-900: #14110f;
+  --ink-700: #3a332c;
+  --ink-500: #6b6157;
+  --ink-300: #9c9187;
+  --rule: rgba(20, 17, 15, 0.1);
+  --rule-strong: rgba(20, 17, 15, 0.18);
+  --shadow-ambient: 0 24px 60px -30px rgba(20, 17, 15, 0.28);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+
+  --sage-700: #3f5646;
+  --sage-600: #4f6b57;
+  --sage-500: #5f7f68;
+  --sage-200: #c6d5cb;
+  --sage-100: #dde6df;
+
+  --claret-600: #8a2e39;
+  --claret-200: #e4c4c8;
+  --claret-100: #f2e2e4;
+
+  color-scheme: light;
+}
+
 * {
   border-color: var(--rule);
 }

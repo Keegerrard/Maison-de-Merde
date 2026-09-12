@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono";
 import GrainOverlay from "@/components/ui/GrainOverlay";
 import ToastProvider from "@/components/ui/ToastProvider";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { ThemeProvider, NO_FLASH_THEME_SCRIPT } from "@/hooks/useTheme";
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -38,13 +39,20 @@ export default function RootLayout({
       className={`${instrumentSerif.variable} ${GeistSans.variable} ${GeistMono.variable}`}
     >
       <head>
-        <meta name="color-scheme" content="light" />
+        {/* Sets data-theme on <html> synchronously, before first paint,
+            reading the persisted choice from localStorage. Must run before
+            any CSS relying on [data-theme="light"] is applied, and before
+            React hydrates — a useEffect in ThemeProvider would be a frame
+            too late and cause a visible flash of the wrong theme. */}
+        <script dangerouslySetInnerHTML={{ __html: NO_FLASH_THEME_SCRIPT }} />
         <meta name="google" content="notranslate" />
       </head>
       <body>
-        <LanguageProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </LanguageProvider>
+        </ThemeProvider>
         <GrainOverlay />
       </body>
     </html>

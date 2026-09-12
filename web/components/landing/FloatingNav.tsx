@@ -10,6 +10,7 @@ import {
   type Variants,
 } from "framer-motion";
 import ArrowCTAButton from "@/components/ui/ArrowCTAButton";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { EASE, DURATION, SPRING, STAGGER_STEP } from "@/lib/motion";
 
 type SectionId = "systeme" | "cercle" | "journal";
@@ -149,6 +150,10 @@ export default function FloatingNav() {
           </ul>
 
           <div className="relative hidden md:block">
+            <ThemeToggle className="h-8 w-8" />
+          </div>
+
+          <div className="relative hidden md:block">
             <ArrowCTAButton href="/app/">Enter</ArrowCTAButton>
           </div>
 
@@ -213,6 +218,9 @@ export default function FloatingNav() {
                 <ArrowCTAButton href="/app/" onClick={() => setMobileOpen(false)}>
                   Enter
                 </ArrowCTAButton>
+              </motion.li>
+              <motion.li variants={itemVariants}>
+                <ThemeToggle />
               </motion.li>
             </motion.ul>
           </motion.div>

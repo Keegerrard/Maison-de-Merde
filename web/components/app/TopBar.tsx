@@ -5,6 +5,7 @@ import TabRail, { type TabId } from "./TabRail";
 import StreakPill from "./StreakPill";
 import NotificationBell from "./NotificationBell";
 import LanguageSwitcher from "./LanguageSwitcher";
+import ThemeToggle from "../ui/ThemeToggle";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export default function TopBar({
@@ -47,6 +48,7 @@ export default function TopBar({
 
         <div className="flex items-center gap-2">
           <StreakPill />
+          <ThemeToggle />
           <LanguageSwitcher />
           <NotificationBell onOpenChat={onOpenChat} onOpenCircle={onOpenCircle} />
           <button

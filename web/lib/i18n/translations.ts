@@ -191,6 +191,10 @@ export const STRINGS: Record<string, Dict> = {
 
   "lang.label": { default: "Language", en: "Language", su: "Basa", ar: "اللغة", zh: "语言" },
 
+  // ---- Theme toggle ----
+  "theme.switchToLight": { default: "Switch to light mode", en: "Switch to light mode", su: "Pindah ka mode caang", ar: "التبديل إلى الوضع الفاتح", zh: "切换到浅色模式" },
+  "theme.switchToDark": { default: "Switch to dark mode", en: "Switch to dark mode", su: "Pindah ka mode poék", ar: "التبديل إلى الوضع الداكن", zh: "切换到深色模式" },
+
   // ---- Account: change username ----
   "account.title": { default: "Account", en: "Account", su: "Akun", ar: "الحساب", zh: "账户" },
   "account.username": { default: "Username", en: "Username", su: "Nami Pamaké", ar: "اسم المستخدم", zh: "用户名" },

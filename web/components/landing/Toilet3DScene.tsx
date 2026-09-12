@@ -179,13 +179,21 @@ class SceneErrorBoundary extends Component<
 export default function Toilet3DScene({
   progress,
   fallback,
+  inView = true,
 }: {
   progress: MotionValue<number>;
   fallback: ReactNode;
+  // Default frameloop="always" renders every frame forever, even once this
+  // scene has scrolled far out of view (React keeps it mounted). The parent
+  // tracks real viewport visibility via IntersectionObserver and flips this
+  // to stop the WebGL render loop entirely rather than just hiding it —
+  // "never" skips actual GPU work, not just paint.
+  inView?: boolean;
 }) {
   return (
     <SceneErrorBoundary fallback={fallback}>
       <Canvas
+        frameloop={inView ? "always" : "never"}
         dpr={[1, 1.75]}
         camera={{ position: [1.9, 1.5, 2.7], fov: 34 }}
         gl={{ antialias: true, alpha: true, toneMapping: THREE.NoToneMapping }}

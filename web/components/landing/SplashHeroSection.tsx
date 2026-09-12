@@ -21,6 +21,43 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+// Treats a data-saver request or a measured slow connection the same as
+// prefers-reduced-motion: skip the ~5MB / 145-frame download and the
+// scroll-scrub entirely, fall back to a single static frame. This is a
+// deliberate alternative to guessing "mobile == turn it off" — a phone on
+// fast wifi still gets the full scene, while a laptop tethered to a bad
+// connection gets the same courtesy a phone would. navigator.connection is
+// Chromium-only; browsers without it just always return false here, which
+// is the safe default (full experience, same as today).
+function usePrefersLightweightMedia() {
+  const [lightweight, setLightweight] = useState(false);
+
+  useEffect(() => {
+    type NetworkInformation = {
+      saveData?: boolean;
+      effectiveType?: string;
+      addEventListener?: (type: "change", cb: () => void) => void;
+      removeEventListener?: (type: "change", cb: () => void) => void;
+    };
+    const connection = (navigator as Navigator & { connection?: NetworkInformation })
+      .connection;
+    if (!connection) return;
+
+    const SLOW_TYPES = new Set(["slow-2g", "2g"]);
+    function evaluate() {
+      setLightweight(
+        Boolean(connection?.saveData) || SLOW_TYPES.has(connection?.effectiveType ?? "")
+      );
+    }
+
+    evaluate();
+    connection.addEventListener?.("change", evaluate);
+    return () => connection.removeEventListener?.("change", evaluate);
+  }, []);
+
+  return lightweight;
+}
+
 export default function SplashHeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,7 +65,12 @@ export default function SplashHeroSection() {
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const frameIndexRef = useRef(0);
   const drawnIndexRef = useRef(-1);
-  const reduce = usePrefersReducedMotion();
+  // Tracks real viewport visibility so the render loop can be fully stopped
+  // rather than merely hidden — see the IntersectionObserver effect below.
+  const inViewRef = useRef(true);
+  const reducedMotion = usePrefersReducedMotion();
+  const lightweightMedia = usePrefersLightweightMedia();
+  const reduce = reducedMotion || lightweightMedia;
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -94,12 +136,34 @@ export default function SplashHeroSection() {
           drawnIndexRef.current = idx;
         }
       }
-      raf = requestAnimationFrame(draw);
+      // React never unmounts this section once the page scrolls past it, so
+      // without this check the loop would otherwise keep ticking forever in
+      // the background. Only reschedule while actually in view; the
+      // IntersectionObserver below restarts the chain on re-entry.
+      if (inViewRef.current) {
+        raf = requestAnimationFrame(draw);
+      }
     }
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
     raf = requestAnimationFrame(draw);
+
+    let observer: IntersectionObserver | undefined;
+    if (typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          const wasInView = inViewRef.current;
+          inViewRef.current = entry.isIntersecting;
+          if (entry.isIntersecting && !wasInView) {
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(draw);
+          }
+        },
+        { rootMargin: "200px 0px" }
+      );
+      observer.observe(section);
+    }
 
     const ctx2 = gsap.context(() => {
       ScrollTrigger.create({
@@ -128,6 +192,7 @@ export default function SplashHeroSection() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resizeCanvas);
+      observer?.disconnect();
       ctx2.revert();
     };
   }, [reduce]);

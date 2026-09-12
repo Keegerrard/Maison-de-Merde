@@ -45,6 +45,8 @@ import {
   ArrowLeft,
   Pencil,
   BadgeCheck,
+  Sun,
+  Moon,
   type LucideProps,
 } from "lucide-react";
 
@@ -92,6 +94,8 @@ const ICONS = {
   ArrowLeft,
   Pencil,
   BadgeCheck,
+  Sun,
+  Moon,
 } as const;
 
 export type IconName = keyof typeof ICONS;
