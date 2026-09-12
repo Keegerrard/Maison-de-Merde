@@ -10,17 +10,26 @@ const {
   requireAuth,
   validateSignupInput,
 } = require("../auth");
+const { rateLimit } = require("../rateLimit");
 
 const router = express.Router();
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,24}$/;
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
+// Credential-guessing surfaces get a tight window; signup/reset get a
+// looser one since they're self-limiting by cost (creating an account,
+// receiving a token) but still worth capping against spam.
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, keyPrefix: "auth:login", message: "Too many login attempts. Try again in a few minutes." });
+const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, keyPrefix: "auth:signup", message: "Too many accounts created from this address recently. Try again later." });
+const forgotPasswordLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, keyPrefix: "auth:forgot", message: "Too many reset requests. Try again in a few minutes." });
+const resetPasswordLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, keyPrefix: "auth:reset", message: "Too many attempts. Try again in a few minutes." });
+
 function hashToken(raw) {
   return crypto.createHash("sha256").update(raw).digest("hex");
 }
 
-router.post("/signup", async (req, res) => {
+router.post("/signup", signupLimiter, async (req, res) => {
   const { username, email, password } = req.body || {};
   const errors = validateSignupInput({ username, email, password });
   if (errors.length) return res.status(400).json({ error: errors.join(" ") });
@@ -45,7 +54,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const { username, password, remember } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: "Username and password required." });
 
@@ -122,7 +131,7 @@ router.patch("/username", requireAuth, async (req, res) => {
 // transparent-about-what's-simulated approach as the Gold Circle paywall.
 // In a real deployment with an email provider, swap the response body for
 // an actual send-email call and stop returning `resetUrl`/`resetToken`.
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", forgotPasswordLimiter, async (req, res) => {
   const { username } = req.body || {};
   if (!username) return res.status(400).json({ error: "Username or email is required." });
 
@@ -157,7 +166,7 @@ router.post("/forgot-password", async (req, res) => {
 });
 
 // POST /api/auth/reset-password { token, newPassword }
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
   const { token, newPassword } = req.body || {};
   if (!token) return res.status(400).json({ error: "Reset token is required." });
   if (!newPassword || newPassword.length < 8) {
@@ -187,6 +196,39 @@ router.post("/reset-password", async (req, res) => {
   } catch (e) {
     console.error("reset password error", e);
     res.status(500).json({ error: "Failed to reset password." });
+  }
+});
+
+// DELETE /api/auth/account { password } — permanently delete the current
+// user and everything tied to them. Requires the current password as
+// confirmation, same as changing it. Every other table with a user_id
+// column (sessions_log, profiles, friendships, messages, notifications,
+// shared_sessions/share_notes, badges_granted, password_resets) declares
+// `ON DELETE CASCADE` on both the Postgres and SQLite migrations, so a
+// single DELETE FROM users cleanly removes everything without needing to
+// touch each table by hand here. This is the "or destroy everything, at
+// any time" half of the app's own stated privacy commitment — previously
+// there was no way to delete an account at all.
+router.delete("/account", requireAuth, async (req, res) => {
+  const { password } = req.body || {};
+  if (!password) {
+    return res.status(400).json({ error: "Enter your current password to confirm." });
+  }
+
+  try {
+    const userRes = await query("SELECT id, password_hash FROM users WHERE id = $1", [req.userId]);
+    const user = userRes.rows[0];
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    const ok = await verifyPassword(password, user.password_hash);
+    if (!ok) return res.status(401).json({ error: "Incorrect password." });
+
+    await query("DELETE FROM users WHERE id = $1", [req.userId]);
+    clearSessionCookie(res);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("delete account error", e);
+    res.status(500).json({ error: "Failed to delete account." });
   }
 });
 

@@ -3,6 +3,7 @@ const { query } = require("../db");
 const { requireAuth } = require("../auth");
 const { calcStreak, daysBetween, todayISO, toISODateString, toISOStringSafe } = require("../streak");
 const { notify } = require("../notifications");
+const { rateLimit } = require("../rateLimit");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -102,7 +103,17 @@ router.get("/global", async (req, res) => {
 });
 
 // POST /api/circle/friends { username } — send a friend request.
-router.post("/friends", async (req, res) => {
+//
+// Idempotent and notification-safe: re-POSTing the same username (the
+// client's own retry-on-error, a double-click, or just someone mashing the
+// button) must not re-notify the target every time. Previously this always
+// called notify() unconditionally on every request, regardless of whether
+// the friendship row was new — so hitting this endpoint repeatedly against
+// someone you're already friends with (or already have a pending request
+// to) would spam them with "wants to join your circle" / "accepted your
+// circle request" notifications indefinitely. Fixed by checking the
+// existing state first and only notifying on an actual transition.
+router.post("/friends", rateLimit({ windowMs: 60 * 1000, max: 20, keyPrefix: "circle:friend-request", message: "Too many requests. Slow down." }), async (req, res) => {
   const username = (req.body?.username || "").trim();
   if (!username) return res.status(400).json({ error: "username is required." });
 
@@ -112,11 +123,25 @@ router.post("/friends", async (req, res) => {
     if (!target) return res.status(404).json({ error: "No user with that username." });
     if (target.id === req.userId) return res.status(400).json({ error: "You can't friend yourself." });
 
-    await query(
-      `INSERT INTO friendships (user_id, friend_id, status) VALUES ($1, $2, 'pending')
-       ON CONFLICT (user_id, friend_id) DO NOTHING`,
+    const existingRes = await query(
+      "SELECT status FROM friendships WHERE user_id = $1 AND friend_id = $2",
       [req.userId, target.id]
     );
+    const alreadyExisted = existingRes.rows.length > 0;
+
+    if (!alreadyExisted) {
+      await query(
+        `INSERT INTO friendships (user_id, friend_id, status) VALUES ($1, $2, 'pending')
+         ON CONFLICT (user_id, friend_id) DO NOTHING`,
+        [req.userId, target.id]
+      );
+    }
+
+    // Nothing changed — this exact request (or friendship) already existed,
+    // so there's nothing new to tell the target about.
+    if (alreadyExisted) {
+      return res.status(200).json({ ok: true });
+    }
 
     // If the other direction already requested us, auto-accept both ways.
     const reciprocal = await query("SELECT id FROM friendships WHERE user_id = $1 AND friend_id = $2", [target.id, req.userId]);

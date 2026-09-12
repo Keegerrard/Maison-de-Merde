@@ -23,9 +23,17 @@ function shortLabel(full: string): string {
 export default function BristolPicker({
   value,
   onChange,
+  // Framer Motion's layoutId is global across the whole mounted tree, so
+  // two BristolPickers on screen at once (e.g. the always-mounted quick-log
+  // form behind an open SessionDetailModal edit view) would otherwise fight
+  // over the same shared highlight and animate across each other. Give each
+  // usage site its own id when more than one instance can be mounted
+  // concurrently.
+  layoutId = "bristol-selection",
 }: {
   value: number | null;
   onChange: (value: number | null) => void;
+  layoutId?: string;
 }) {
   const [focusIndex, setFocusIndex] = useState(value ? value - 1 : 0);
   const [interaction, setInteraction] = useState<Interaction>("pointer");
@@ -116,7 +124,7 @@ export default function BristolPicker({
           >
             {selected ? (
               <motion.div
-                layoutId="bristol-selection"
+                layoutId={layoutId}
                 className="absolute inset-0 rounded-core-sm bg-paper-raised shadow-inner ring-2 ring-sage-600"
                 transition={
                   interaction === "keyboard" ? { duration: 0 } : SPRING.layout

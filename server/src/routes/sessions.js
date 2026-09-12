@@ -73,6 +73,105 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Field-level validation for PATCH /:id (edit). Mirrors the whitelist
+// checks in POST / (create) above — kept separate rather than shared
+// because POST treats an omitted field as "null" while PATCH treats an
+// omitted field as "leave unchanged," so the null-check semantics differ.
+function validateMutableFields(b) {
+  const errors = [];
+  if (b.bristolType != null) {
+    const n = Number(b.bristolType);
+    if (!Number.isInteger(n) || n < 1 || n > 7) errors.push("bristolType must be an integer 1-7.");
+  }
+  if (b.color != null && !VALID_COLORS.includes(b.color)) errors.push("Invalid color value.");
+  if (b.odor != null && !VALID_ODORS.includes(b.odor)) errors.push("Invalid odor value.");
+  if (b.pain != null && !VALID_PAIN.includes(b.pain)) errors.push("Invalid pain value.");
+  return errors;
+}
+
+// PATCH /api/sessions/:id — edit a previously logged entry. Owner-only.
+// Deliberately does not allow changing `occurred_at`: streaks and the
+// contribution heatmap are derived from that timestamp, so retroactively
+// moving it would silently rewrite streak history. Editing the *content* of
+// an entry (a typo in notes, a misremembered color) is the actual use case.
+router.patch("/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid session id." });
+
+  const b = req.body || {};
+  const errors = validateMutableFields(b);
+  if (errors.length) return res.status(400).json({ error: errors.join(" ") });
+
+  try {
+    const existingRes = await query("SELECT id, user_id FROM sessions_log WHERE id = $1", [id]);
+    const existing = existingRes.rows[0];
+    if (!existing) return res.status(404).json({ error: "Session not found." });
+    if (existing.user_id !== req.userId) {
+      return res.status(403).json({ error: "You can only edit your own sessions." });
+    }
+
+    const fields = [];
+    const values = [];
+    let i = 1;
+
+    if (b.bristolType !== undefined) { fields.push(`bristol_type = $${i++}`); values.push(b.bristolType === null ? null : Number(b.bristolType)); }
+    if (b.color !== undefined) { fields.push(`color = $${i++}`); values.push(b.color || null); }
+    if (b.odor !== undefined) { fields.push(`odor = $${i++}`); values.push(b.odor || null); }
+    if (b.pain !== undefined) { fields.push(`pain = $${i++}`); values.push(b.pain || null); }
+    if (b.visibleFood !== undefined) { fields.push(`visible_food = $${i++}`); values.push(!!b.visibleFood); }
+    if (b.bloodFlag !== undefined) { fields.push(`blood_flag = $${i++}`); values.push(!!b.bloodFlag); }
+    if (b.symptoms !== undefined) {
+      const symptoms = Array.isArray(b.symptoms) ? [...new Set(b.symptoms.filter((s) => VALID_SYMPTOMS.includes(s)))] : [];
+      fields.push(`symptoms = $${i++}`);
+      values.push(JSON.stringify(symptoms));
+    }
+    if (b.notes !== undefined) { fields.push(`notes = $${i++}`); values.push((b.notes || "").slice(0, 2000) || null); }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ error: "No editable fields provided." });
+    }
+
+    values.push(id);
+    await query(`UPDATE sessions_log SET ${fields.join(", ")} WHERE id = $${i}`, values);
+
+    const result = await query(
+      `SELECT id, user_id, occurred_at, bristol_type, color, odor, pain, visible_food, blood_flag,
+              symptoms, notes, ai_suggested, ai_confidence, photo_kept
+       FROM sessions_log WHERE id = $1`,
+      [id]
+    );
+    res.json({ session: parseSessionRow(result.rows[0]) });
+  } catch (e) {
+    console.error("edit session error", e);
+    res.status(500).json({ error: "Failed to update session." });
+  }
+});
+
+// DELETE /api/sessions/:id — owner-only, hard delete. Cascades to
+// shared_sessions/share_notes via ON DELETE CASCADE (enabled on both the
+// Postgres and SQLite drivers — see db.js's `PRAGMA foreign_keys = ON`), so
+// deleting a session you've previously shared also removes it from
+// recipients' shared view rather than leaving an orphaned/broken reference.
+router.delete("/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid session id." });
+
+  try {
+    const existingRes = await query("SELECT id, user_id FROM sessions_log WHERE id = $1", [id]);
+    const existing = existingRes.rows[0];
+    if (!existing) return res.status(404).json({ error: "Session not found." });
+    if (existing.user_id !== req.userId) {
+      return res.status(403).json({ error: "You can only delete your own sessions." });
+    }
+
+    await query("DELETE FROM sessions_log WHERE id = $1", [id]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("delete session error", e);
+    res.status(500).json({ error: "Failed to delete session." });
+  }
+});
+
 // GET /api/sessions?limit=15 — recent sessions for the current user.
 router.get("/", async (req, res) => {
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 15));

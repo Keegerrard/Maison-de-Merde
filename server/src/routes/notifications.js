@@ -61,4 +61,29 @@ router.post("/read-all", async (req, res) => {
   }
 });
 
+// DELETE /api/notifications/:id — dismiss a single notification. Owner-only
+// (scoped by user_id in the WHERE clause, same pattern as mark-read above).
+router.delete("/:id", async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: "Invalid notification id." });
+  try {
+    await query("DELETE FROM notifications WHERE id = $1 AND user_id = $2", [id, req.userId]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("delete notification error", e);
+    res.status(500).json({ error: "Failed to delete notification." });
+  }
+});
+
+// DELETE /api/notifications — clear every notification for the current user.
+router.delete("/", async (req, res) => {
+  try {
+    await query("DELETE FROM notifications WHERE user_id = $1", [req.userId]);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("clear notifications error", e);
+    res.status(500).json({ error: "Failed to clear notifications." });
+  }
+});
+
 module.exports = router;

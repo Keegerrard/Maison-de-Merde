@@ -10,7 +10,12 @@ import type { SessionListResponse, SessionRow } from "@/lib/types";
  * fetch covers streak/heatmap/badges, but the session list is Log-tab-only
  * state that refreshes far more often (every log).
  */
-export function useSessions(limit = 15) {
+// `externalRefreshSignal` lets a component outside this hook's tree (e.g.
+// SessionDetailModal, mounted once at the AppShell level, editing/deleting
+// a session that belongs to this list) force a refetch by bumping a
+// counter — useSessions itself has no way to know about an edit that
+// happened through a different component.
+export function useSessions(limit = 15, externalRefreshSignal?: number) {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +37,8 @@ export function useSessions(limit = 15) {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refresh, externalRefreshSignal]);
 
   return { sessions, loading, error, refresh };
 }

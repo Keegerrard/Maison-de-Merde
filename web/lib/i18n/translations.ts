@@ -165,6 +165,11 @@ export const STRINGS: Record<string, Dict> = {
   "session.odor": { default: "Odour", en: "Odour", su: "Bau", ar: "الرائحة", zh: "气味" },
   "session.pain": { default: "Pain", en: "Pain", su: "Nyeri", ar: "الألم", zh: "疼痛" },
   "session.visibleFood": { default: "Visible undigested food", en: "Visible undigested food", su: "Katingali tuangeun anu can dicerna", ar: "طعام غير مهضوم ظاهر", zh: "可见未消化食物" },
+  "session.edit": { default: "Edit", en: "Edit", su: "Ropéa", ar: "تعديل", zh: "编辑" },
+  "session.delete": { default: "Delete", en: "Delete", su: "Hapus", ar: "حذف", zh: "删除" },
+  "session.deleteConfirm": { default: "Delete this entry? This can't be undone.", en: "Delete this entry? This can't be undone.", su: "Hapus catetan ieu? Teu tiasa dibalikeun deui.", ar: "حذف هذا السجل؟ لا يمكن التراجع عن هذا.", zh: "删除这条记录?此操作无法撤销。" },
+  "session.deleteConfirmButton": { default: "Yes, delete", en: "Yes, delete", su: "Enya, hapus", ar: "نعم، احذف", zh: "确认删除" },
+  "session.deleteError": { default: "Failed to delete this entry.", en: "Failed to delete this entry.", su: "Gagal ngahapus catetan ieu.", ar: "فشل حذف هذا السجل.", zh: "删除该记录失败。" },
 
   "share.title": { default: "Share this session", en: "Share this session", su: "Bagikeun Sési Ieu", ar: "شارك هذه الجلسة", zh: "分享此记录" },
   "share.caption": { default: "Caption (optional)", en: "Caption (optional)", su: "Katerangan (opsional)", ar: "تعليق (اختياري)", zh: "配文(选填)" },
@@ -191,6 +196,8 @@ export const STRINGS: Record<string, Dict> = {
   "notif.friendAccept": { default: "accepted your circle request", en: "accepted your circle request", su: "nampi pamundut lingkaran anjeun", ar: "قبل طلبك للانضمام", zh: "接受了你的圈子邀请" },
   "notif.message": { default: "sent you a message", en: "sent you a message", su: "ngirim pesen ka anjeun", ar: "أرسل لك رسالة", zh: "给你发了一条消息" },
   "notif.sessionShared": { default: "shared a session with you", en: "shared a session with you", su: "ngabagikeun sési ka anjeun", ar: "شارك جلسة معك", zh: "与你分享了一条记录" },
+  "notif.clearAll": { default: "Clear all", en: "Clear all", su: "Hapus sadayana", ar: "مسح الكل", zh: "清除全部" },
+  "notif.dismiss": { default: "Dismiss", en: "Dismiss", su: "Piceun", ar: "إغلاق", zh: "关闭" },
 
   "profile.title": { default: "Your profile", en: "Your profile", su: "Profil Anjeun", ar: "ملفك الشخصي", zh: "个人主页" },
   "profile.nickname": { default: "Display name", en: "Display name", su: "Nami Tampilan", ar: "الاسم المعروض", zh: "显示名称" },

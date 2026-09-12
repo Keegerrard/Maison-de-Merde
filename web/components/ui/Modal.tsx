@@ -68,7 +68,7 @@ export default function Modal({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-center bg-ink-900/25 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink-900/25 px-4 py-8 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -97,7 +97,12 @@ export default function Modal({
               transition: { duration: 0.18, ease: EASE.out },
             }}
           >
-            <DoubleBezelCard className={className}>{children}</DoubleBezelCard>
+            <DoubleBezelCard
+              className={className}
+              coreClassName="max-h-[85vh] overflow-y-auto overscroll-contain"
+            >
+              {children}
+            </DoubleBezelCard>
           </motion.div>
         </motion.div>
       ) : null}

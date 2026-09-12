@@ -59,5 +59,30 @@ export function useNotifications(active: boolean) {
     }
   }, []);
 
-  return { items, unreadCount, refresh, markRead, markAllRead };
+  const dismiss = useCallback(async (id: number) => {
+    let wasUnread = false;
+    setItems((prev) => {
+      const target = prev.find((n) => n.id === id);
+      wasUnread = !!target && !target.read;
+      return prev.filter((n) => n.id !== id);
+    });
+    if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
+    try {
+      await apiFetch(`/api/notifications/${id}`, { method: "DELETE" });
+    } catch {
+      /* best-effort — worst case it reappears on next poll */
+    }
+  }, []);
+
+  const clearAll = useCallback(async () => {
+    setItems([]);
+    setUnreadCount(0);
+    try {
+      await apiFetch("/api/notifications", { method: "DELETE" });
+    } catch {
+      /* best-effort */
+    }
+  }, []);
+
+  return { items, unreadCount, refresh, markRead, markAllRead, dismiss, clearAll };
 }

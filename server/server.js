@@ -21,6 +21,12 @@ const profileRoutes = require("./src/routes/profile");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Railway (and most PaaS) put the app behind a single reverse proxy, so
+// req.ip would otherwise resolve to the proxy's address for every request —
+// which would make the IP-based rate limiter in src/rateLimit.js useless
+// (every client collapses into one bucket). `1` trusts exactly one hop.
+app.set("trust proxy", 1);
+
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 

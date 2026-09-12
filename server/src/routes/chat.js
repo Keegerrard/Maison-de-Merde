@@ -2,9 +2,17 @@ const express = require("express");
 const { query } = require("../db");
 const { requireAuth } = require("../auth");
 const { notify } = require("../notifications");
+const { rateLimit } = require("../rateLimit");
 
 const router = express.Router();
 router.use(requireAuth);
+
+const sendMessageLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  keyPrefix: "chat:send",
+  message: "You're sending messages too fast. Slow down.",
+});
 
 async function requireFriend(myId, username) {
   const targetRes = await query("SELECT id, username FROM users WHERE username = $1", [username]);
@@ -49,7 +57,7 @@ router.get("/:username", async (req, res) => {
 });
 
 // POST /api/chat/:username { body }
-router.post("/:username", async (req, res) => {
+router.post("/:username", sendMessageLimiter, async (req, res) => {
   const body = (req.body?.body || "").trim().slice(0, 2000);
   if (!body) return res.status(400).json({ error: "Message body is required." });
 

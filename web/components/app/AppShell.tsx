@@ -159,9 +159,14 @@ export default function AppShell() {
   const [shareSessionId, setShareSessionId] = useState<number | null>(null);
   const [chatWith, setChatWith] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [sessionsRefreshSignal, setSessionsRefreshSignal] = useState(0);
 
   function handleOpenSession(id: number) {
     setDetailSessionId(id);
+  }
+  function handleSessionChanged() {
+    setSessionsRefreshSignal((s) => s + 1);
+    refreshDashboard();
   }
   function handleShareFromDetail(id: number) {
     setDetailSessionId(null);
@@ -211,6 +216,7 @@ export default function AppShell() {
               <LogPanel
                 onNewlyUnlocked={enqueueCelebrations}
                 onOpenSession={handleOpenSession}
+                sessionsRefreshSignal={sessionsRefreshSignal}
               />
             ) : null}
             {tab === "dashboard" ? <DashboardPanel /> : null}
@@ -241,6 +247,7 @@ export default function AppShell() {
           sessionId={detailSessionId}
           onClose={() => setDetailSessionId(null)}
           onShare={handleShareFromDetail}
+          onChanged={handleSessionChanged}
         />
         <ShareSessionModal
           sessionId={shareSessionId}

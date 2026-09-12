@@ -42,7 +42,7 @@ export default function NotificationBell({
   onOpenCircle?: () => void;
 }) {
   const { t } = useLanguage();
-  const { items, unreadCount, markRead, markAllRead } = useNotifications(true);
+  const { items, unreadCount, markRead, markAllRead, dismiss, clearAll } = useNotifications(true);
   const [open, setOpen] = useState(false);
 
   function handleRowClick(n: NotificationItem) {
@@ -89,41 +89,64 @@ export default function NotificationBell({
             >
               <div className="flex items-center justify-between px-2 py-1.5">
                 <p className="text-small font-medium text-ink-900">{t("notif.title")}</p>
-                {unreadCount > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => markAllRead()}
-                    className="font-mono text-[10px] uppercase tracking-[0.06em] text-sage-700 [@media(hover:hover)_and_(pointer:fine)]:hover:text-sage-600"
-                  >
-                    {t("notif.markAllRead")}
-                  </button>
-                ) : null}
+                <div className="flex items-center gap-3">
+                  {unreadCount > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => markAllRead()}
+                      className="font-mono text-[10px] uppercase tracking-[0.06em] text-sage-700 [@media(hover:hover)_and_(pointer:fine)]:hover:text-sage-600"
+                    >
+                      {t("notif.markAllRead")}
+                    </button>
+                  ) : null}
+                  {items.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => clearAll()}
+                      className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-500 [@media(hover:hover)_and_(pointer:fine)]:hover:text-claret-600"
+                    >
+                      {t("notif.clearAll")}
+                    </button>
+                  ) : null}
+                </div>
               </div>
               <div className="max-h-[360px] divide-y divide-rule overflow-y-auto">
                 {items.length === 0 ? (
                   <p className="px-2 py-4 text-small text-ink-500">{t("notif.empty")}</p>
                 ) : (
                   items.map((n) => (
-                    <button
+                    <div
                       key={n.id}
-                      type="button"
-                      onClick={() => handleRowClick(n)}
                       className={[
-                        "flex w-full items-start gap-2 px-2 py-2.5 text-left text-small",
+                        "group flex w-full items-start gap-2 px-2 py-2.5 text-small",
                         n.read ? "text-ink-500" : "text-ink-900",
                         "[@media(hover:hover)_and_(pointer:fine)]:hover:bg-paper-sunk",
                       ].join(" ")}
                     >
-                      {!n.read ? (
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sage-600" />
-                      ) : (
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0" />
-                      )}
-                      <span className="flex-1">{notifCopy(n, t)}</span>
-                      <span className="shrink-0 font-mono text-[10px] text-ink-300">
-                        {timeAgo(n.created_at)}
-                      </span>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRowClick(n)}
+                        className="flex flex-1 items-start gap-2 text-left"
+                      >
+                        {!n.read ? (
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sage-600" />
+                        ) : (
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0" />
+                        )}
+                        <span className="flex-1">{notifCopy(n, t)}</span>
+                        <span className="shrink-0 font-mono text-[10px] text-ink-300">
+                          {timeAgo(n.created_at)}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => dismiss(n.id)}
+                        aria-label={t("notif.dismiss")}
+                        className="shrink-0 text-ink-300 opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:hover:text-claret-600 focus-visible:opacity-100"
+                      >
+                        <Icon name="X" size={13} />
+                      </button>
+                    </div>
                   ))
                 )}
               </div>

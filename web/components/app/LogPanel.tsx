@@ -14,11 +14,16 @@ import type { BadgeSummary, SessionCreateResponse } from "@/lib/types";
 export default function LogPanel({
   onNewlyUnlocked,
   onOpenSession,
+  sessionsRefreshSignal,
 }: {
   onNewlyUnlocked?: (badges: BadgeSummary[]) => void;
   onOpenSession?: (id: number) => void;
+  // Bumped by AppShell after SessionDetailModal edits or deletes a session,
+  // so this list picks up the change even though the modal lives outside
+  // this component's tree.
+  sessionsRefreshSignal?: number;
 }) {
-  const { sessions, loading, refresh } = useSessions();
+  const { sessions, loading, refresh } = useSessions(15, sessionsRefreshSignal);
   const { refresh: refreshDashboard } = useDashboard();
   const [stampKey, setStampKey] = useState(0);
   const [showStamp, setShowStamp] = useState(false);
