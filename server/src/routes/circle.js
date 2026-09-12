@@ -58,6 +58,49 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /api/circle/global — a public, opt-in leaderboard: you, plus every
+// user who has switched their profile to Public (the same toggle in Profile
+// settings that already gates GET /api/profile/:username). Nobody appears
+// here without having chosen to. Filtered in JS rather than in SQL because
+// is_public is a real BOOLEAN in Postgres but an INTEGER 0/1 in the SQLite
+// dev driver, and this codebase's convention elsewhere (sessions.js,
+// dashboard.js) is always to fetch booleans as-is and truthiness-check them
+// in JS rather than write a `= true`/`= 1` WHERE clause that only works
+// against one driver.
+router.get("/global", async (req, res) => {
+  try {
+    const meRes = await query("SELECT username FROM users WHERE id = $1", [req.userId]);
+    const me = await computeUserRow(req.userId, meRes.rows[0].username);
+    me.isMe = true;
+    me.userId = req.userId;
+
+    const candidatesRes = await query(
+      `SELECT u.id, u.username, p.is_public FROM users u
+       JOIN profiles p ON p.user_id = u.id
+       WHERE u.id != $1`,
+      [req.userId]
+    );
+    const publicCandidates = candidatesRes.rows.filter((r) => !!r.is_public);
+
+    const publicRows = await Promise.all(
+      publicCandidates.map(async (u) => {
+        const row = await computeUserRow(u.id, u.username);
+        row.isMe = false;
+        row.userId = u.id;
+        return row;
+      })
+    );
+
+    const rows = [me, ...publicRows].sort(
+      (a, b) => b.streak - a.streak || b.consistency - a.consistency
+    );
+    res.json({ leaderboard: rows });
+  } catch (e) {
+    console.error("global leaderboard error", e);
+    res.status(500).json({ error: "Failed to load the global leaderboard." });
+  }
+});
+
 // POST /api/circle/friends { username } — send a friend request.
 router.post("/friends", async (req, res) => {
   const username = (req.body?.username || "").trim();

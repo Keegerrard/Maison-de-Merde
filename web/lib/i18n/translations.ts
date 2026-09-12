@@ -50,6 +50,8 @@ export const STRINGS: Record<string, Dict> = {
   "nav.circle.sub": { default: "Circle", en: "Circle", su: "Lingkaran", ar: "الدائرة", zh: "圈子" },
   "nav.achievements": { default: "Distinctions", en: "Achievements", su: "Prestasi", ar: "الأوسمة", zh: "成就" },
   "nav.achievements.sub": { default: "Achievements", en: "Achievements", su: "Prestasi", ar: "الإنجازات", zh: "成就" },
+  "nav.global": { default: "Global", en: "Global", su: "Global", ar: "العالمي", zh: "全球" },
+  "nav.global.sub": { default: "Global", en: "Global", su: "Global", ar: "العالمي", zh: "全球" },
 
   "auth.ledgerOpen": {
     default: "The ledger is open.",
@@ -117,6 +119,30 @@ export const STRINGS: Record<string, Dict> = {
     su: "Can aya nu dibagikeun ka anjeun.",
     ar: "لم يشارك معك أحد شيئًا بعد.",
     zh: "还没有人和你分享内容。",
+  },
+
+  "global.eyebrow": { default: "GLOBAL", en: "GLOBAL", su: "GLOBAL", ar: "عالمي", zh: "全球" },
+  "global.title": { default: "Ranked across everyone, by choice.", en: "Ranked across everyone, by choice.", su: "Diranking di antara sadayana, kalayan pilihan.", ar: "مرتَّبون بين الجميع، باختيارهم.", zh: "所有人一起排名,自愿参加。" },
+  "global.lede": {
+    default: "Only people who've switched their profile to Public show up here. Nobody is ranked publicly without choosing to be.",
+    en: "Only people who've switched their profile to Public show up here. Nobody is ranked publicly without choosing to be.",
+    su: "Ngan jalma anu parantos ngarobih profilna janten Umum nu nembongan di dieu. Teu aya anu diranking sacara umum tanpa milih éta.",
+    ar: "لا يظهر هنا سوى الأشخاص الذين جعلوا ملفهم الشخصي عامًا. لا يُرتَّب أحد علنًا دون أن يختار ذلك.",
+    zh: "只有将个人资料设为公开的人才会出现在这里。没有人会在未选择的情况下被公开排名。",
+  },
+  "global.empty": {
+    default: "Nobody else has opted in yet — you can be the first from Profile settings.",
+    en: "Nobody else has opted in yet — you can be the first from Profile settings.",
+    su: "Can aya batur nu milih. Anjeun tiasa jadi nu munggaran ti setelan Profil.",
+    ar: "لم ينضم أحد آخر بعد — يمكنك أن تكون الأول من إعدادات الملف الشخصي.",
+    zh: "还没有其他人加入——你可以在个人资料设置中成为第一个。",
+  },
+  "global.notPublicHint": {
+    default: "Your own profile is private, so only you can see yourself here. Switch it to Public in Profile settings to actually compete.",
+    en: "Your own profile is private, so only you can see yourself here. Switch it to Public in Profile settings to actually compete.",
+    su: "Profil anjeun nyalira nuju pribadi, janten ngan anjeun nu tiasa ningali diri di dieu. Robih janten Umum dina setelan Profil supados leres-leres milu.",
+    ar: "ملفك الشخصي خاص، لذا أنت وحدك من يمكنه رؤية نفسك هنا. بدّله إلى عام في إعدادات الملف الشخصي للمنافسة فعليًا.",
+    zh: "你的个人资料是私密的,所以这里只有你自己能看到你。请在个人资料设置中将其设为公开以真正参与排名。",
   },
 
   "session.emptyList": {

@@ -122,8 +122,26 @@ function SceneContent({ progress }: { progress: MotionValue<number> }) {
 
   return (
     <group ref={rootRef} position={[0, -0.15, 0]}>
+      {/* The bowl's rim curls inward (see bowlProfile()'s top points), which
+          from this camera's 3/4 angle overhangs and occludes anything
+          sitting below the rim line — the specimen was disappearing behind
+          this solid wall partway through its descent (around Bristol Type
+          4), long before the sequence was meant to end. Rendering the bowl
+          as a translucent "x-ray" shell instead of solid ceramic keeps the
+          specimen always visible through it — and reads as a deliberate
+          diagrammatic/plate-illustration choice given the existing "Fig. 1"
+          caption, not a workaround. depthWrite={false} avoids the near and
+          far bowl walls fighting each other under alpha blending. */}
       <mesh geometry={bowlGeometry}>
-        <meshStandardMaterial color="#fbf8f2" roughness={0.55} metalness={0.05} flatShading />
+        <meshStandardMaterial
+          color="#fbf8f2"
+          roughness={0.55}
+          metalness={0.05}
+          flatShading
+          transparent
+          opacity={0.22}
+          depthWrite={false}
+        />
       </mesh>
 
       <mesh ref={waterRef} position={[0, 0.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -133,7 +151,8 @@ function SceneContent({ progress }: { progress: MotionValue<number> }) {
           roughness={0.2}
           metalness={0.1}
           transparent
-          opacity={0.92}
+          opacity={0.4}
+          depthWrite={false}
         />
       </mesh>
 

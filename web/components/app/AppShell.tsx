@@ -12,6 +12,7 @@ import TopBar from "./TopBar";
 import LogPanel from "./LogPanel";
 import DashboardPanel from "./DashboardPanel";
 import CirclePanel from "./CirclePanel";
+import GlobalLeaderboardPanel from "./GlobalLeaderboardPanel";
 import AchievementsPanel from "./AchievementsPanel";
 import GoldCirclePaywall from "./GoldCirclePaywall";
 import CelebrationModal from "./CelebrationModal";
@@ -23,7 +24,7 @@ import SkeletonBlock from "../ui/SkeletonBlock";
 import type { TabId } from "./TabRail";
 
 const TAB_STORAGE_KEY = "mdm_tab";
-const VALID_TABS: TabId[] = ["log", "dashboard", "circle", "achievements"];
+const VALID_TABS: TabId[] = ["log", "dashboard", "circle", "global", "achievements"];
 
 export default function AppShell() {
   const { status, user, login, signup, logout } = useAuth();
@@ -215,6 +216,12 @@ export default function AppShell() {
             {tab === "dashboard" ? <DashboardPanel /> : null}
             {tab === "circle" ? (
               <CirclePanel onOpenChat={handleOpenChat} onOpenSession={handleOpenSession} />
+            ) : null}
+            {tab === "global" ? (
+              <GlobalLeaderboardPanel
+                onOpenChat={handleOpenChat}
+                onOpenProfile={() => setProfileOpen(true)}
+              />
             ) : null}
             {tab === "achievements" ? <AchievementsPanel /> : null}
           </main>

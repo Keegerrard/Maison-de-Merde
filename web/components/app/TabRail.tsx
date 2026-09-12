@@ -5,12 +5,13 @@ import Icon, { type IconName } from "../ui/Icon";
 import { SPRING } from "@/lib/motion";
 import { useLanguage } from "@/hooks/useLanguage";
 
-export type TabId = "log" | "dashboard" | "circle" | "achievements";
+export type TabId = "log" | "dashboard" | "circle" | "global" | "achievements";
 
 const TAB_DEFS: { id: TabId; labelKey: string; subtitleKey: string; icon: IconName }[] = [
   { id: "log", labelKey: "nav.log", subtitleKey: "nav.log.sub", icon: "FileText" },
   { id: "dashboard", labelKey: "nav.dashboard", subtitleKey: "nav.dashboard.sub", icon: "TrendingUp" },
   { id: "circle", labelKey: "nav.circle", subtitleKey: "nav.circle.sub", icon: "Users" },
+  { id: "global", labelKey: "nav.global", subtitleKey: "nav.global.sub", icon: "Globe" },
   { id: "achievements", labelKey: "nav.achievements", subtitleKey: "nav.achievements.sub", icon: "Award" },
 ];
 
